@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace RESTPopocatepetl.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("daily")]
     public class DailyController : ControllerBase
     {
         [HttpGet(template: "{date}", Name = "All Data for Date")]

@@ -32,11 +32,12 @@ namespace DataAccess
             var openArticle = driver.WaitUntilElementClickable(By.XPath("//article//a[text()='Continuar leyendo']"));
             openArticle.Click();
 
-            ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
-            driver.SwitchTo().Window(driver.WindowHandles.Last());
+            GoToNextTab(driver);
 
-            var openFull = driver.WaitUntilElementClickable(By.XPath("//a[starts-with(@href, 'https://www.cenapred.unam.mx/reportesVolcanGobMX/')]"));
+            var openFull = driver.WaitUntilElementClickable(By.XPath("//a[contains(@href,'cenapred.unam.mx/reportesVolcanGobMX/')]"));
             openFull.Click();
+
+            GoToNextTab(driver);
 
             return driver;
         }
@@ -86,6 +87,14 @@ namespace DataAccess
                 "estenoreste" => "East North East",
                 _ => plumeElement.Text,
             };
+        }
+
+        private static void GoToNextTab(ChromeDriver driver)
+        {
+            var current = driver.CurrentWindowHandle;
+            var indexOfCurrent = driver.WindowHandles.IndexOf(current);
+
+            driver.SwitchTo().Window(driver.WindowHandles[indexOfCurrent + 1]);
         }
     }
 }
