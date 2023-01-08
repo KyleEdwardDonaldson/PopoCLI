@@ -16,7 +16,7 @@ namespace DataAccess
             };
             caps.AddUserProfilePreference("profile.default_content_settings.popups", 0);
 
-            caps.AddArguments("headless");
+            //caps.AddArguments("headless");
 
             return new ChromeDriver(caps);
         }

@@ -7,42 +7,27 @@ namespace DataAccess
 {
     public class CenapredScraper
     {
-        private const string _archive = "https://www.gob.mx/cenapred/archivo/articulos?idiom=es&&filter_origin=archive";
+        private const string _search = "https://www.gob.mx/cenapred/archivo/articulos?utf8=%E2%9C%93&q=Popocat%C3%A9petl&site=cenapred&section=articulos&fechaInicio={0}%2F{1}%2F{2}&fechaFin={3}%2F{4}%2F{5}";//7%22+%22de%22+%22enero%22+%222022%22
 
         public static CenapredData? Scrape(DateTime date)
         {
             var data = new CenapredData();
+            using (var driver = SeleniumHelper.SetupChromeDriver())
+            {
+                BetterOpenPageForDate(date, driver);
 
-            var driver = OpenPageForDate(date);
-
-            data.DirectionOfPlume = GetDirectionOfPlume(driver);
-            data.Phase = GetPhase(driver);
+                data.DirectionOfPlume = GetDirection(driver);
+                data.Phase = GetPhase(driver);
+            }
 
             return data;
         }
 
-        private static ChromeDriver OpenPageForDate(DateTime date)
+        private static ChromeDriver BetterOpenPageForDate(DateTime date, ChromeDriver driver)
         {
-            var shortDate = date.ToString("d");
+            var articleSearch = string.Format(_search, date.Day, date.Month, date.Year, date.Day, date.Month, date.Year);
 
-            var driver = SeleniumHelper.SetupChromeDriver();
-            SeleniumHelper.OpenPage(driver, _archive);
-
-            var filterButton = driver.WaitUntilElementClickable(By.XPath("//a[.//text()[normalize-space() = 'Búsqueda avanzada'] ]"));
-            filterButton.Click();
-
-            var fromDate = driver.WaitUntilElementClickable(By.Id("fechaInicio"));
-            var toDate = driver.WaitUntilElementClickable(By.Id("fechaFin"));
-
-            fromDate.SendKeys(shortDate);
-            toDate.SendKeys(shortDate);
-
-            var searchField = driver.WaitUntilElementClickable(By.Id("q"));
-            searchField.SendKeys("Popocatépetl");
-            searchField.Click();
-
-            var submitSearch = driver.WaitUntilElementClickable(By.XPath("//input[@type='submit'][@value='Buscar']"));
-            submitSearch.Click();
+            SeleniumHelper.OpenPage(driver, articleSearch);
 
             var openArticle = driver.WaitUntilElementClickable(By.XPath("//article//a[text()='Continuar leyendo']"));
             openArticle.Click();
@@ -50,17 +35,10 @@ namespace DataAccess
             ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
             driver.SwitchTo().Window(driver.WindowHandles.Last());
 
-            var openFull = driver.WaitUntilElementClickable(By.XPath("//strong[text()='Para ver el reporte completo:']"));
+            var openFull = driver.WaitUntilElementClickable(By.XPath("//a[starts-with(@href, 'https://www.cenapred.unam.mx/reportesVolcanGobMX/')]"));
             openFull.Click();
 
             return driver;
-        }
-
-        private static string GetDirectionOfPlume(ChromeDriver driver)
-        {
-            var plumeElement = driver.WaitUntilElementClickable(By.XPath("//h4[.//text()[normalize-space() = 'Dirección de la pluma']]//../following::div//p//b"));
-
-            return plumeElement.Text;
         }
 
         private static string GetPhase(ChromeDriver driver)
@@ -82,6 +60,32 @@ namespace DataAccess
             }
 
             return "N/A";
+        }
+
+        private static string GetDirection(ChromeDriver driver)
+        {
+            var plumeElement = driver.WaitUntilElementClickable(By.XPath("//h4[.//text()[normalize-space() = 'Dirección de la pluma']]//../following::div//p//b"));
+
+            return plumeElement.Text.ToLower() switch
+            {
+                "nor" => "North",
+                "este" => "East",
+                "sur" => "South",
+                "ooeste" => "West",
+                "noreste" => "North East",
+                "noroeste" => "North West",
+                "suroeste" => "South West",
+                "sureste" => "South East",
+                "estesureste" => "East South East",
+                "sursureste" => "South South East",
+                "oestesuroeste" => "West South West",
+                "sursuroeste" => "South South West",
+                "oestenoroeste" => "West North West",
+                "nornoroeste" => "North North West",
+                "nornoreste" => "North North East",
+                "estenoreste" => "East North East",
+                _ => plumeElement.Text,
+            };
         }
     }
 }
