@@ -1,16 +1,23 @@
-﻿namespace DataAccess.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace DataAccess.Entities
 {
     public class CenapredData
     {
         private static Dictionary<DateTime, CenapredData> _cache = new Dictionary<DateTime, CenapredData>();
 
+        [JsonIgnore]
         public int UsageCount { get; set; }
 
-        public int Exhalations { get; set; }
+        public string Exhalations { get; set; }
 
         public string Phase { get; set; }
 
         public string DirectionOfPlume { get; set; }
+
+        public string MinutesOfTremor { get; set; }
+
+        public string Explosions { get; set; }
 
         public static CenapredData? TryGetData(DateTime date)
         {
