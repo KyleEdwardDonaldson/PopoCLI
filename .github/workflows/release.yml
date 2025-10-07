@@ -61,10 +61,19 @@ jobs:
         with:
           path: artifacts
 
+      - name: List artifacts
+        run: ls -R artifacts/
+
+      - name: Prepare binaries
+        run: |
+          mkdir -p release-binaries
+          find artifacts -type f -exec mv {} release-binaries/ \;
+          ls -lh release-binaries/
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/*/*
+          files: release-binaries/*
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
