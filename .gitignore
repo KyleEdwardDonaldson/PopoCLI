@@ -1,8 +1,3 @@
-# C# artifacts (legacy)
-/.vs
-obj
-bin
-
 # Rust build artifacts
 /target
 Cargo.lock
