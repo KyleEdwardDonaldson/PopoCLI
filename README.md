@@ -27,7 +27,7 @@ cd PopoCLI
 cargo install --path .
 ```
 
-### Using Cargo (coming soon)
+### Using Cargo
 
 ```bash
 cargo install popo-cli
