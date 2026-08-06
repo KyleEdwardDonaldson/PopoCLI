@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>CENAPRED - Reporte del volcán Popocatépetl</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">google.charts.load('current', {'packages':['corechart','bar']});</script>
+</head>
+<body>
+  <header class="header">
+    <a href="/media/logo_cenapred.png"><img src="/media/logo_cenapred.png" alt="CENAPRED"></a>
+  </header>
+  <nav class="menu">
+    <ul>
+      <li><a href="/">Inicio</a></li>
+      <li><a href="/reportesVolcanesMX/">Volc&aacute;n Popocat&eacute;petl</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h3>Reporte del monitoreo del volc&aacute;n Popocat&eacute;petl</h3>
+    <h4>27 de Abril de 2022</h4>
+
+    <p>En las &uacute;ltimas 24 horas, mediante los sistemas de monitoreo del volc&aacute;n Popocat&eacute;petl,
+      se detectaron 40 exhalaciones acompa&ntilde;adas de vapor de agua y gases volc&aacute;nicos. Tambi&eacute;n se
+      registraron 2 sismos volcanotect&oacute;nicos.</p>
+    <p>Al momento de este reporte se observa una emisi&oacute;n continua de gases volc&aacute;nicos.
+      Direcci&oacute;n del viento OESTE NOROESTE.</p>
+    <p>No se report&oacute; ca&iacute;da de ceniza en poblaciones cercanas al volc&aacute;n.</p>
+    <div class="leyenda">Niveles del sem&aacute;foro: VERDE, AMARILLO, NARANJA, ROJO.</div>
+    <p>El Sem&aacute;foro de Alerta Volc&aacute;nica del Popocat&eacute;petl se encuentra en AMARILLO FASE 2.</p>
+
+    <div class="so2">
+      <span>Emisi&oacute;n de bi&oacute;xido de azufre (SO<sub>2</sub>):</span>
+      <p>2603 toneladas por d&iacute;a. &Uacute;ltima lectura: 10 octubre 2024</p>
+    </div>
+
+    <div id="drawExhalaciones_div"></div>
+    <div id="drawVolcanotectonicos_div"></div>
+    <div id="drawTremor_div"></div>
+    <div id="drawExplosiones_div"></div>
+
+    <div class="galeria">
+      <a href="/media/p0427221.jpg"><img src="/media/p0427221.jpg" alt="Popocat&eacute;petl"></a>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>Centro Nacional de Prevenci&oacute;n de Desastres</p>
+  </footer>
+
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawExhalaciones);
+  function drawExhalaciones() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Exhalaciones');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['13-04-2022', 22, '#2fc1f1'],
+        ['14-04-2022', 31, '#2fc1f1'],
+        ['15-04-2022', 18, '#2fc1f1'],
+        ['16-04-2022', 44, '#2fc1f1'],
+        ['17-04-2022', 27, '#2fc1f1'],
+        ['18-04-2022', 35, '#2fc1f1'],
+        ['19-04-2022', 51, '#2fc1f1'],
+        ['20-04-2022', 29, '#2fc1f1'],
+        ['21-04-2022', 16, '#2fc1f1'],
+        ['22-04-2022', 38, '#2fc1f1'],
+        ['23-04-2022', 47, '#2fc1f1'],
+        ['24-04-2022', 25, '#2fc1f1'],
+        ['25-04-2022', 33, '#2fc1f1'],
+        ['26-04-2022', 19, '#2fc1f1'],
+        ['27-04-2022', 40, '#2fc1f1'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawExhalaciones_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawVolcanotectonicos);
+  function drawVolcanotectonicos() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Volcanotectónicos');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['13-04-2022', 0, '#f1a02f'],
+        ['14-04-2022', 0, '#f1a02f'],
+        ['15-04-2022', 1, '#f1a02f'],
+        ['16-04-2022', 0, '#f1a02f'],
+        ['17-04-2022', 0, '#f1a02f'],
+        ['18-04-2022', 0, '#f1a02f'],
+        ['19-04-2022', 3, '#f1a02f'],
+        ['20-04-2022', 0, '#f1a02f'],
+        ['21-04-2022', 0, '#f1a02f'],
+        ['22-04-2022', 1, '#f1a02f'],
+        ['23-04-2022', 0, '#f1a02f'],
+        ['24-04-2022', 0, '#f1a02f'],
+        ['25-04-2022', 0, '#f1a02f'],
+        ['26-04-2022', 0, '#f1a02f'],
+        ['27-04-2022', 2, '#f1a02f'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawVolcanotectonicos_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawTremor);
+  function drawTremor() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Minutos de tremor');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['13-04-2022', 0, '#8e44ad'],
+        ['14-04-2022', 0, '#8e44ad'],
+        ['15-04-2022', 0, '#8e44ad'],
+        ['16-04-2022', 14, '#8e44ad'],
+        ['17-04-2022', 0, '#8e44ad'],
+        ['18-04-2022', 0, '#8e44ad'],
+        ['19-04-2022', 0, '#8e44ad'],
+        ['20-04-2022', 0, '#8e44ad'],
+        ['21-04-2022', 0, '#8e44ad'],
+        ['22-04-2022', 0, '#8e44ad'],
+        ['23-04-2022', 22, '#8e44ad'],
+        ['24-04-2022', 0, '#8e44ad'],
+        ['25-04-2022', 0, '#8e44ad'],
+        ['26-04-2022', 0, '#8e44ad'],
+        ['27-04-2022', 0, '#8e44ad'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawTremor_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawExplosiones);
+  function drawExplosiones() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Explosiones');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['13-04-2022', 0, '#e74c3c'],
+        ['14-04-2022', 0, '#e74c3c'],
+        ['15-04-2022', 0, '#e74c3c'],
+        ['16-04-2022', 0, '#e74c3c'],
+        ['17-04-2022', 0, '#e74c3c'],
+        ['18-04-2022', 0, '#e74c3c'],
+        ['19-04-2022', 0, '#e74c3c'],
+        ['20-04-2022', 0, '#e74c3c'],
+        ['21-04-2022', 0, '#e74c3c'],
+        ['22-04-2022', 0, '#e74c3c'],
+        ['23-04-2022', 0, '#e74c3c'],
+        ['24-04-2022', 0, '#e74c3c'],
+        ['25-04-2022', 0, '#e74c3c'],
+        ['26-04-2022', 0, '#e74c3c'],
+        ['27-04-2022', 0, '#e74c3c'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawExplosiones_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+</body>
+</html>

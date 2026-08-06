@@ -1,0 +1,151 @@
+name: Ingest CENAPRED report
+
+# CENAPRED publishes the daily Popocatepetl report at 11:00 America/Mexico_City.
+# Mexico City has been UTC-6 year round since 2022 (no DST), so 11:00 local is
+# 17:00 UTC. GitHub cron is UTC only, so we run at 18:20 UTC (12:20 local) for a
+# comfortable margin, and again at 21:20 UTC in case publication ran late or the
+# first attempt hit the WAF. The job is idempotent: a run that finds nothing new
+# commits nothing and still succeeds.
+on:
+  schedule:
+    - cron: '20 18 * * *'
+    - cron: '20 21 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-write the report even if it is already published'
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Parse and report, but write and commit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Never let two runs push to data/ at the same time.
+concurrency:
+  group: ingest-feed
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    name: Ingest latest report
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: ingest/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ingest
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('ingest/package-lock.json') }}
+
+      # A real browser is mandatory: cenapred.unam.mx is behind Radware Bot
+      # Manager, and plain HTTP clients only ever receive a challenge page.
+      # Note: no --no-shell here. We deliberately need the full Chromium build,
+      # because Radware challenges `chromium-headless-shell`.
+      - name: Install Chromium
+        working-directory: ingest
+        run: npx playwright install --with-deps chromium
+
+      # Radware also challenges plain headless mode, so the ingester runs Chromium
+      # headed. On a runner with no display that needs a virtual framebuffer.
+      - name: Ensure a virtual display is available
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+          echo "xvfb-run: $(command -v xvfb-run)"
+
+      # A broken parser must never be allowed to publish garbage.
+      - name: Run unit tests
+        working-directory: ingest
+        run: npm test
+
+      - name: Ingest latest report
+        id: ingest
+        env:
+          FORCE: ${{ inputs.force }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(latest)
+          if [ "${FORCE:-false}" = "true" ]; then args+=(--force); fi
+          if [ "${DRY_RUN:-false}" = "true" ]; then args+=(--dry-run); fi
+
+          # Radware challenges headless Chromium, so the ingester runs headed and
+          # needs a display. `|| status=$?` keeps the failure from aborting the
+          # step before we can annotate it.
+          status=0
+          xvfb-run -a node ingest/index.mjs "${args[@]}" || status=$?
+
+          # 0 = success, including "there is simply no new report".
+          # 2 = CENAPRED served a bot-protection challenge; nothing was written.
+          # anything else = a real error.
+          if [ "$status" -eq 2 ]; then
+            echo "::error title=Blocked by CENAPRED::Radware served a challenge page instead of a report. Nothing was written; the next scheduled run will retry."
+          fi
+          exit "$status"
+
+      - name: Report no-op
+        if: steps.ingest.outputs.changed != 'true'
+        run: |
+          echo "No new report to publish (upstream report date: ${{ steps.ingest.outputs.date }})." \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit updated feed
+        if: steps.ingest.outputs.changed == 'true' && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+
+          if git diff --cached --quiet; then
+            echo "Ingester reported a change but data/ is identical; nothing to commit."
+            exit 0
+          fi
+
+          git commit \
+            -m "data: Popocatepetl report for ${{ steps.ingest.outputs.date }}" \
+            -m "Ingested from CENAPRED by .github/workflows/ingest.yml (${{ steps.ingest.outputs.result }})."
+
+          # A concurrent run may have landed while we were fetching.
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}); rebasing onto origin and retrying."
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          done
+
+          echo "Could not push the updated feed after 3 attempts." >&2
+          exit 1
+
+      - name: Summarise
+        if: steps.ingest.outputs.changed == 'true'
+        run: |
+          {
+            echo "Published the Popocatepetl report for **${{ steps.ingest.outputs.date }}**"
+            echo ""
+            echo "- result: \`${{ steps.ingest.outputs.result }}\`"
+            echo "- feed: \`data/latest.json\`, \`data/reports/<YYYY>/\`, \`data/index.json\`"
+          } >> "$GITHUB_STEP_SUMMARY"

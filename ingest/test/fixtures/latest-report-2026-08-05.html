@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>CENAPRED - Reporte del volcán Popocatépetl</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">google.charts.load('current', {'packages':['corechart','bar']});</script>
+</head>
+<body>
+  <header class="header">
+    <a href="/media/logo_cenapred.png"><img src="/media/logo_cenapred.png" alt="CENAPRED"></a>
+  </header>
+  <nav class="menu">
+    <ul>
+      <li><a href="/">Inicio</a></li>
+      <li><a href="/reportesVolcanesMX/">Volc&aacute;n Popocat&eacute;petl</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h3>Reporte del monitoreo del volc&aacute;n Popocat&eacute;petl</h3>
+    <h4>05 de Agosto de 2026</h4>
+
+    <p>En las &uacute;ltimas 24 horas, mediante los sistemas de monitoreo del volc&aacute;n Popocat&eacute;petl,
+      se detectaron 160 exhalaciones, acompa&ntilde;adas de vapor de agua, gases volc&aacute;nicos y ceniza.
+      Adicionalmente, se registraron 53 minutos de tremor de baja amplitud, de los cuales 39 minutos fueron
+      de alta frecuencia y 14 minutos de arm&oacute;nico.</p>
+    <p>Durante la ma&ntilde;ana de hoy se observa emisi&oacute;n continua de vapor de agua y gases volc&aacute;nicos.
+      Direcci&oacute;n del viento SURESTE.</p>
+    <p>El d&iacute;a de hoy, el Centro Nacional de Comunicaciones y Operaci&oacute;n de Protecci&oacute;n Civil
+      (Cenacom), report&oacute; ligera ca&iacute;da de ceniza en Atlautla, Estado de M&eacute;xico.</p>
+    <div class="leyenda">Niveles del sem&aacute;foro: VERDE, AMARILLO, NARANJA, ROJO.</div>
+    <p>El Sem&aacute;foro de Alerta Volc&aacute;nica del Popocat&eacute;petl se encuentra en AMARILLO FASE 2.</p>
+
+    <div class="so2">
+      <span>Emisi&oacute;n de bi&oacute;xido de azufre (SO<sub>2</sub>):</span>
+      <p>2154 toneladas por d&iacute;a. &Uacute;ltima lectura: 03 agosto 2026</p>
+    </div>
+
+    <div id="drawExhalaciones_div"></div>
+    <div id="drawVolcanotectonicos_div"></div>
+    <div id="drawTremor_div"></div>
+    <div id="drawExplosiones_div"></div>
+
+    <div class="galeria">
+      <a href="/media/p05082601.jpeg"><img src="/media/p05082601.jpeg" alt="Popocat&eacute;petl"></a>
+      <a href="/media/v05082601.mp4">Video del d&iacute;a</a>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>Centro Nacional de Prevenci&oacute;n de Desastres</p>
+  </footer>
+
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawExhalaciones);
+  function drawExhalaciones() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Exhalaciones');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['22-07-2026', 118, '#2fc1f1'],
+        ['23-07-2026', 96, '#2fc1f1'],
+        ['24-07-2026', 143, '#2fc1f1'],
+        ['25-07-2026', 87, '#2fc1f1'],
+        ['26-07-2026', 102, '#2fc1f1'],
+        ['27-07-2026', 74, '#2fc1f1'],
+        ['28-07-2026', 133, '#2fc1f1'],
+        ['29-07-2026', 91, '#2fc1f1'],
+        ['30-07-2026', 155, '#2fc1f1'],
+        ['31-07-2026', 66, '#2fc1f1'],
+        ['01-08-2026', 121, '#2fc1f1'],
+        ['02-08-2026', 108, '#2fc1f1'],
+        ['03-08-2026', 79, '#2fc1f1'],
+        ['04-08-2026', 147, '#2fc1f1'],
+        ['05-08-2026', 160, '#2fc1f1'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawExhalaciones_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawVolcanotectonicos);
+  function drawVolcanotectonicos() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Volcanotectónicos');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['22-07-2026', 0, '#f1a02f'],
+        ['23-07-2026', 1, '#f1a02f'],
+        ['24-07-2026', 0, '#f1a02f'],
+        ['25-07-2026', 0, '#f1a02f'],
+        ['26-07-2026', 2, '#f1a02f'],
+        ['27-07-2026', 0, '#f1a02f'],
+        ['28-07-2026', 0, '#f1a02f'],
+        ['29-07-2026', 0, '#f1a02f'],
+        ['30-07-2026', 1, '#f1a02f'],
+        ['31-07-2026', 0, '#f1a02f'],
+        ['01-08-2026', 0, '#f1a02f'],
+        ['02-08-2026', 0, '#f1a02f'],
+        ['03-08-2026', 0, '#f1a02f'],
+        ['04-08-2026', 0, '#f1a02f'],
+        ['05-08-2026', 0, '#f1a02f'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawVolcanotectonicos_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawTremor);
+  function drawTremor() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Minutos de tremor');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['22-07-2026', 12, '#8e44ad'],
+        ['23-07-2026', 0, '#8e44ad'],
+        ['24-07-2026', 45, '#8e44ad'],
+        ['25-07-2026', 7, '#8e44ad'],
+        ['26-07-2026', 0, '#8e44ad'],
+        ['27-07-2026', 0, '#8e44ad'],
+        ['28-07-2026', 63, '#8e44ad'],
+        ['29-07-2026', 18, '#8e44ad'],
+        ['30-07-2026', 0, '#8e44ad'],
+        ['31-07-2026', 5, '#8e44ad'],
+        ['01-08-2026', 0, '#8e44ad'],
+        ['02-08-2026', 31, '#8e44ad'],
+        ['03-08-2026', 0, '#8e44ad'],
+        ['04-08-2026', 9, '#8e44ad'],
+        ['05-08-2026', 53, '#8e44ad'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawTremor_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+<script type="text/javascript">
+  google.charts.setOnLoadCallback(drawExplosiones);
+  function drawExplosiones() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Fecha');
+    data.addColumn('number', 'Explosiones');
+    data.addColumn({type: 'string', role: 'style'});
+    data.addRows([
+        ['22-07-2026', 0, '#e74c3c'],
+        ['23-07-2026', 0, '#e74c3c'],
+        ['24-07-2026', 0, '#e74c3c'],
+        ['25-07-2026', 0, '#e74c3c'],
+        ['26-07-2026', 0, '#e74c3c'],
+        ['27-07-2026', 0, '#e74c3c'],
+        ['28-07-2026', 1, '#e74c3c'],
+        ['29-07-2026', 0, '#e74c3c'],
+        ['30-07-2026', 0, '#e74c3c'],
+        ['31-07-2026', 0, '#e74c3c'],
+        ['01-08-2026', 0, '#e74c3c'],
+        ['02-08-2026', 0, '#e74c3c'],
+        ['03-08-2026', 0, '#e74c3c'],
+        ['04-08-2026', 0, '#e74c3c'],
+        ['05-08-2026', 0, '#e74c3c'],
+    ]);
+    var chart = new google.visualization.ColumnChart(document.getElementById('drawExplosiones_div'));
+    chart.draw(data, {legend: {position: 'none'}});
+  }
+</script>
+</body>
+</html>

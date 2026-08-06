@@ -1,0 +1,21 @@
+{
+  "name": "popo-ingest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ingests CENAPRED Popocatepetl reports with a real Chromium browser and publishes the static JSON feed under data/.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "latest": "node index.mjs latest",
+    "backfill": "node index.mjs backfill",
+    "reindex": "node index.mjs reindex",
+    "browser": "playwright install --with-deps chromium"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "playwright": "^1.62.1"
+  }
+}

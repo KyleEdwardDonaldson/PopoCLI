@@ -2,20 +2,42 @@
 
 > **Popocatépetl Volcano Monitoring CLI & Library**
 
-A fast, reliable command-line tool and Rust library for fetching real-time volcanic activity data from Mexico's [CENAPRED](https://www.cenapred.unam.mx) monitoring system for Popocatépetl volcano.
+A fast, reliable command-line tool and Rust library for volcanic activity data from Mexico's [CENAPRED](https://www.cenapred.unam.mx) monitoring system for Popocatépetl volcano.
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## ✨ Features
 
-- 🚀 **Fast & Efficient** - Written in Rust, blazingly fast scraping with minimal resource usage
+- 🚀 **Fast** - One HTTP GET against a static JSON feed. No HTML parsing at runtime
 - 📊 **Rich Data** - Comprehensive volcanic activity metrics from official CENAPRED reports
-- 📅 **Historical Data** - Access reports from any date (format: YYYY-MM-DD)
+- 📅 **Historical Data** - Reports by date, back to the start of the archive
 - 🎨 **Multiple Output Formats** - Human-readable terminal output or JSON for programmatic use
 - 🔄 **Easy Integration** - Use as a CLI tool or Rust library in your own projects
 - 🌍 **Cross-Platform** - Works on Linux, macOS, and Windows
-- 📦 **Zero-Cost Distribution** - No servers to maintain, runs entirely on your machine
+- 🛡️ **Doesn't scrape** - Ingestion happens once, centrally; your machine just reads JSON
+
+## 🌐 Where the data comes from
+
+`popo` does **not** scrape CENAPRED. That site sits behind a bot manager which
+serves an HTTP 200 challenge page to every non-browser client, so per-user
+scraping cannot work — it silently returns a page that looks fine and parses to
+nothing.
+
+Instead, a scheduled job ingests the official reports once with a real browser
+and publishes plain JSON to this repository. The CLI is a thin client over that
+feed, which means it is fast, stable, and never has to fight a WAF.
+
+Point it somewhere else — a fork, a mirror, or a local directory — with
+`--feed` or `POPO_FEED_BASE`:
+
+```bash
+popo --feed ./data latest
+POPO_FEED_BASE=https://example.com/data popo latest
+```
+
+The feed layout and field semantics are specified in
+[`docs/feed-schema.md`](docs/feed-schema.md).
 
 ## 📥 Installation
 
@@ -61,35 +83,48 @@ popo get 2022-03-22
 popo get 2022-03-22 --json
 ```
 
+See what the archive covers:
+```bash
+popo index
+```
+
 ### As a Library
 
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-popo-cli = "0.1.0"
+popo-cli = "0.2.0"
 ```
 
 Use in your Rust code:
 ```rust
-use popo_cli::{Scraper, Result};
+use popo_cli::{Feed, Result};
 use chrono::NaiveDate;
 
 fn main() -> Result<()> {
-    let scraper = Scraper::new();
+    let feed = Feed::new();
 
-    // Fetch latest report
-    let report = scraper.fetch_latest()?;
+    // Latest report
+    let report = feed.latest()?;
     println!("Alert Level: {:?}", report.alert_level);
-    println!("Exhalations (24h): {}", report.exhalations);
+    println!("Exhalations (24h): {:?}", report.exhalations);
 
-    // Fetch historical date
+    // A specific date
     let date = NaiveDate::from_ymd_opt(2022, 3, 22).unwrap();
-    let historical = scraper.fetch_date(date)?;
-    println!("Historical tremor: {}", historical.tremor_minutes_total);
+    let historical = feed.get(date)?;
+    println!("Historical tremor: {:?}", historical.tremor_minutes_total);
+
+    // What's available
+    let index = feed.index()?;
+    println!("{} reports, {} to {}", index.count, index.earliest, index.latest);
 
     Ok(())
 }
 ```
+
+Counter fields are `Option<u32>`. The archive spans decades, and older reports
+sometimes omit a metric entirely — `None` means "not reported", which is not
+the same as `Some(0)`.
 
 ### From Other Languages
 
@@ -139,12 +174,19 @@ Each report includes:
 ### Environmental Data
 - **Wind Direction** - 16-point compass direction of volcanic plume
 - **SO₂ Emissions** - Sulfur dioxide emission rate (tons/day)
+- **Ashfall Reports** - Places where ashfall was reported
 
 ### Media & Sources
 - **Images** - Webcam images from volcano monitoring stations
 - **Videos** - Time-lapse or event videos
 - **Source URL** - Direct link to CENAPRED report
-- **Timestamps** - Report date and scrape time
+- **Timestamps** - Report date and ingestion time
+
+> **A note on SO₂.** CENAPRED renders a single "last reading" on every report
+> page, including pages for reports years older than the reading itself. The
+> ingester only records SO₂ when the measurement is contemporaneous with the
+> report; otherwise the field is `null`. A historical report showing no SO₂ is
+> reporting honestly, not missing data.
 
 ## 📋 Example Output
 
@@ -156,13 +198,12 @@ Each report includes:
 ╚═══════════════════════════════════════════════════════════════╝
 
 📅 Report Date: 2025-10-06
-🕐 Report Time: 2025-10-07 01:27:20 UTC
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SEISMIC ACTIVITY (Last 24 Hours)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  💨 Exhalations:              15
+  💨 Exhalations:               15
   💥 Explosions:                0
   🌍 Volcanotectonic events:    0
 
@@ -182,6 +223,7 @@ Each report includes:
 
 ```json
 {
+  "schema_version": 1,
   "date": "2025-10-06",
   "exhalations": 15,
   "volcanotectonic_events": 0,
@@ -189,53 +231,69 @@ Each report includes:
   "tremor_high_frequency_minutes": 39,
   "tremor_harmonic_minutes": 14,
   "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
   "alert_level": "YELLOW",
-  "alert_phase": "AMARILLO - FASE 2",
-  "wind_direction": "n-n-w",
-  "so2_emissions_tons_per_day": 2603.0,
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": "NNW",
+  "ashfall_reports": ["Atlautla, Estado de México"],
   "image_urls": ["https://www.cenapred.unam.mx/media/..."],
-  "video_urls": ["https://www.cenapred.unam.mx/media/..."]
+  "video_urls": ["https://www.cenapred.unam.mx/media/..."],
+  "ingested_at": "2025-10-07T01:27:20Z"
 }
 ```
 
 ## 🏗️ Architecture
 
+Two halves, deliberately separated:
+
+```
+CENAPRED (behind a bot manager)
+      │
+      │  ingest/ — real browser, runs on a schedule in CI
+      ▼
+  data/*.json  — committed to this repo
+      │
+      │  plain HTTPS GET
+      ▼
+   popo CLI    — no HTML parsing, no WAF
+```
+
 ### Technology Stack
-- **Rust** - High-performance systems programming language
-- **reqwest** - HTTP client for fetching reports
-- **scraper** - HTML parsing with CSS selectors
+- **Rust** - CLI and library
+- **reqwest** - HTTP client for reading the feed
 - **clap** - Command-line argument parsing
 - **serde** - Serialization/deserialization framework
 - **chrono** - Date and time handling
+- **Playwright** - drives a real browser in the ingest job only
 
 ### How It Works
 
-1. **Fetches** the latest report from CENAPRED's technical report system
-2. **Parses** HTML content including JavaScript-generated Google Charts data
-3. **Extracts** structured data using CSS selectors and regex patterns
-4. **Validates** and transforms data into type-safe Rust structures
-5. **Outputs** in requested format (human-readable or JSON)
+1. A scheduled job loads the official report page in a real browser
+2. It parses the report, including the inline Google Charts series that carry
+   the counter metrics (rows are `['DD-MM-YYYY', value, colour]` — day-first)
+3. It writes one JSON file per day plus `latest.json` and `index.json`
+4. The CLI fetches that JSON and renders it
 
-The scraper is resilient to:
-- Multiple HTML formats (handles both static tables and JS-rendered charts)
-- Various date formats (Spanish long-form and ISO dates)
-- Missing optional fields (graceful degradation)
-- Network issues (proper error handling with retry logic)
+Each report page embeds a ~15-day window of every counter series, so a full
+historical backfill costs roughly one request per 15 days rather than one per
+day.
 
 ## 🧪 Development
 
 ### Running Tests
 
 ```bash
-cargo test
+cargo test              # offline; uses fixture feeds
+cargo test -- --ignored # also hits the live feed
 ```
 
-All tests include:
-- Unit tests for date parsing (Spanish months, multiple formats)
-- Wind direction parsing (16 compass directions in Spanish)
+Tests cover:
+- Feed reads for latest, by-date, and index
+- Wind direction parsing (16 compass directions in Spanish, longest-match first)
 - Alert level extraction
-- HTML fixture parsing
-- Live scraping integration test
+- Absent counters staying distinct from zero
+- Schema-version rejection and malformed-JSON handling
 
 ### Building
 
@@ -245,15 +303,43 @@ cargo build --release
 
 The optimized binary will be in `target/release/popo`.
 
+### Running the ingester
+
+Only needed if you are publishing a feed yourself. It runs automatically in CI.
+
+```bash
+cd ingest
+npm ci
+npx playwright install --with-deps chromium
+npm test                        # offline parser tests
+
+node index.mjs latest           # ingest today's report
+node index.mjs backfill --from 2022-01-01 --to 2022-12-31
+node index.mjs parse page.html  # parse saved HTML offline
+```
+
+Two things are load-bearing and easy to break:
+
+- Chromium must be the **full** build running **headed**. Radware challenges
+  `chromium-headless-shell` and escalates plain headless mode straight to a
+  CAPTCHA. On a headless box, prefix with `xvfb-run -a`.
+- Never reload a page that is mid-challenge. Radware swaps the real content in
+  underneath; re-navigating escalates to a CAPTCHA that retrying cannot clear.
+
+Backfill is resumable (it skips dates already on disk) and rate-limited
+(`--delay-ms`, default 1000). Please keep it polite — this is a public service
+run by a disaster-prevention agency.
+
 ## 🗺️ Roadmap
 
 - [x] Historical date queries (`popo get 2022-03-22`)
-- [ ] SQLite storage for historical data tracking
+- [x] GitHub Actions for daily data archival
+- [x] Published JSON feed, so the CLI no longer scrapes
+- [ ] Complete historical backfill of the archive
 - [ ] Date range queries (`popo range --from 2025-01-01 --to 2025-01-31`)
 - [ ] CSV/Excel export functionality
 - [ ] Notification system for alert level changes
 - [ ] Historical data visualization
-- [ ] GitHub Actions for daily data archival
 - [ ] Multi-volcano support (if other Mexican volcanoes share the format)
 
 ## 🤝 Contributing
@@ -281,7 +367,7 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## ⚠️ Disclaimer
 
-This tool scrapes publicly available data from CENAPRED's website. It is not affiliated with or endorsed by CENAPRED or UNAM. For official volcanic alerts and safety information, always refer directly to [CENAPRED's official sources](https://www.gob.mx/cenapred).
+This tool redistributes publicly available data published by CENAPRED. It is not affiliated with or endorsed by CENAPRED or UNAM. Data is ingested on a schedule, so a report here may lag the official one. For official volcanic alerts and safety information, always refer directly to [CENAPRED's official sources](https://www.gob.mx/cenapred).
 
 **Safety First:** Volcano monitoring data should be used for informational purposes only. Always follow official evacuation orders and safety guidelines from local authorities.
 
