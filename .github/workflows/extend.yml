@@ -4,8 +4,8 @@ name: Extend archive history
 #
 # CENAPRED rate-limited us after roughly 170 requests inside an hour, so the
 # remaining ~20 years are fetched one chunk per day instead of in a burst. At a
-# year per run this is ~25 requests daily — indistinguishable from ordinary
-# traffic — and finishes in about three weeks unattended.
+# year per run this is ~25 requests daily (indistinguishable from ordinary
+# traffic) and finishes in about three weeks unattended.
 #
 # Self-limiting: once the walk runs out of upstream reports the ingester writes
 # data/.backfill-complete and every later run becomes a no-op costing nothing.

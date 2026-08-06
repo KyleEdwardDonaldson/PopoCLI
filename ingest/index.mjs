@@ -48,7 +48,7 @@ const EXIT_BLOCKED = 2;
 /** `verify` found holes in the archive that it did not close. */
 const EXIT_GAPS = 3;
 
-/** A mistake in how the command was invoked — reported without a stack trace. */
+/** A mistake in how the command was invoked, reported without a stack trace. */
 class UsageError extends Error {
   constructor(message) {
     super(message);
@@ -295,7 +295,7 @@ async function commandLatest(options, log) {
   const changed = anythingChanged(results);
   const isNewReport = !existing || isPartial(existing);
 
-  log.info(`${summarise(results)} — index now lists ${index.index.count} dates`);
+  log.info(`${summarise(results)}; index now lists ${index.index.count} dates`);
   if (!changed) {
     log.info(`no new report: ${parsed.reportDate} is already published unchanged`);
   } else if (isNewReport) {
@@ -482,7 +482,7 @@ async function commandBackfill(options, log) {
     if (!(error instanceof ChallengeError)) throw error;
     blocked = error;
     log.error(error.message);
-    log.error(`stopped at ${anchor}; work done so far is kept — re-run to resume`);
+    log.error(`stopped at ${anchor}; work done so far is kept: re-run to resume`);
   } finally {
     await session.close();
   }
@@ -492,7 +492,7 @@ async function commandBackfill(options, log) {
   if (CHANGED_STATUSES.has(index.status)) totals.updated += 1;
   if (CHANGED_STATUSES.has(latest.status)) totals.updated += 1;
 
-  log.info(`${requests} requests — ${summarise(totals)}`);
+  log.info(`${requests} requests: ${summarise(totals)}`);
   log.info(`index now lists ${index.index.count} dates (${index.index.earliest}..${index.index.latest})`);
   if (failures.length) {
     log.warn(`${failures.length} anchor(s) could not be fetched:`);
@@ -517,7 +517,7 @@ async function commandReindex(options, log) {
   const index = await writeIndex(dataDir, { dryRun });
   const latest = await writeLatest(dataDir, { dryRun });
 
-  log.info(`index: ${index.status} — ${index.index.count} dates`);
+  log.info(`index: ${index.status}; ${index.index.count} dates`);
   log.info(`latest.json: ${latest.status}${latest.report ? ` (${latest.report.date})` : ' (no full report on disk)'}`);
 
   const changed = CHANGED_STATUSES.has(index.status) || CHANGED_STATUSES.has(latest.status);
@@ -526,7 +526,7 @@ async function commandReindex(options, log) {
 }
 
 /**
- * Report — and optionally close — holes in the archive.
+ * Report (and optionally close) holes in the archive.
  *
  * A backfill that loses an anchor leaves a run of missing days that nothing
  * else notices: the feed still looks healthy, the index is still internally
@@ -551,7 +551,7 @@ async function commandVerify(options, log) {
   const inRange = sorted.filter((d) => d >= from && d <= to);
   let gaps = findGaps(inRange);
 
-  log.info(`verifying ${from}..${to} — ${inRange.length} reports on disk`);
+  log.info(`verifying ${from}..${to}: ${inRange.length} reports on disk`);
   if (gaps.length === 0) {
     log.info('no gaps: every day in range is present');
     await setGithubOutput({ gaps: '0', result: 'verify' });
@@ -622,7 +622,7 @@ export function extendRange(earliest, days) {
  * Intended for a schedule rather than a person. CENAPRED rate-limited us after
  * roughly 170 requests in an hour, so the remaining history is fetched as a
  * slow drip: one chunk per day, at a volume indistinguishable from ordinary
- * traffic. Self-limiting — once the walk runs out of upstream reports it drops
+ * traffic. Self-limiting: once the walk runs out of upstream reports it drops
  * a marker and every later run becomes a no-op.
  */
 async function commandExtend(options, log) {

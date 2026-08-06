@@ -8,11 +8,11 @@
  * Three details here are load-bearing, each established by observing the live
  * site (see the notes on `open()` and `#settle()`):
  *
- *  1. `channel: 'chromium'` — Playwright's default for `headless: true` is
+ *  1. `channel: 'chromium'`: Playwright's default for `headless: true` is
  *     `chromium-headless-shell`, a stripped-down binary that Radware challenges.
- *  2. Headed rendering — the headless shell and plain headless mode are detected;
+ *  2. Headed rendering: the headless shell and plain headless mode are detected;
  *     a headed real-Chromium window passes. CI runs this under `xvfb-run`.
- *  3. Wait in place, never reload — the challenge swaps the page's own content in
+ *  3. Wait in place, never reload: the challenge swaps the page's own content in
  *     after a few seconds. Re-navigating while it is pending escalates Radware
  *     from its silent JS challenge to an interactive CAPTCHA, which no amount of
  *     retrying will clear.
@@ -191,7 +191,7 @@ export class CenapredSession {
 
       if (isHardBlock(snapshot.title)) {
         throw new ChallengeError(
-          `interactive block: "${snapshot.title.trim()}" — this IP is rate limited; `
+          `interactive block: "${snapshot.title.trim()}"; this IP is rate limited; `
           + 'retrying now would only deepen it',
           { ...snapshot, status, hard: true },
         );
@@ -265,8 +265,8 @@ export class CenapredSession {
 /**
  * Run a fetch with backoff.
  *
- * A soft challenge is retried, with the session's cookies kept — they are what
- * eventually gets us through — and only the last attempt starts from a clean
+ * A soft challenge is retried, with the session's cookies kept (they are what
+ * eventually gets us through), and only the last attempt starts from a clean
  * browser. An interactive block (CAPTCHA / "Unauthorized Request Blocked") is
  * never retried: the IP is rate limited and hammering it makes things worse.
  */

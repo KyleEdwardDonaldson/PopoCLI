@@ -78,7 +78,7 @@ export function eachDay(from, to) {
  * Missing runs inside a daily sequence of ISO dates.
  *
  * The archive is meant to be one report per day, so any jump larger than a day
- * is a hole — usually an anchor that failed mid-backfill. Returns one entry per
+ * is a hole, usually an anchor that failed mid-backfill. Returns one entry per
  * hole, ascending, with the inclusive range of dates that are absent.
  */
 export function findGaps(dates) {

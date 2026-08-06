@@ -1,6 +1,8 @@
 # Rust build artifacts
 /target
-Cargo.lock
+
+# Cargo.lock is committed on purpose: this crate ships a binary, so pinned
+# dependencies make `cargo install --locked` and CI builds reproducible.
 
 # IDE files
 .vscode/
@@ -14,6 +16,9 @@ Cargo.lock
 Thumbs.db
 nul
 
+# Shell crash dumps (MSYS / Git Bash on Windows)
+*.stackdump
+
 # Test output
 output.json
 *.log
@@ -21,6 +26,3 @@ output.json
 # Environment files
 .env
 .env.local
-
-# Playwright MCP (external dependency)
-playwright-mcp/

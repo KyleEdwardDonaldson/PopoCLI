@@ -12,7 +12,7 @@ use serde::de::DeserializeOwned;
 pub const DEFAULT_FEED_BASE: &str =
     "https://raw.githubusercontent.com/KyleEdwardDonaldson/PopoCLI/main/data";
 
-/// Environment variable used to point the CLI at a different feed — a fork, a
+/// Environment variable used to point the CLI at a different feed: a fork, a
 /// local mirror, or a directory on disk.
 pub const FEED_BASE_ENV: &str = "POPO_FEED_BASE";
 

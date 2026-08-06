@@ -118,7 +118,7 @@ fn print_human_readable(report: &VolcanoReport) {
     println!();
     println!("📅 Report Date: {}", report.date);
     if report.partial {
-        println!("ℹ️  Counters only — this day was recorded from a neighbouring");
+        println!("ℹ️  Counters only: this day was recorded from a neighbouring");
         println!("   report's 15-day chart window, so it carries no narrative,");
         println!("   alert status, wind or media.");
     }

@@ -138,7 +138,7 @@ export function normalizeWhitespace(input) {
     .trim();
 }
 
-/** Lowercase, accent-free, whitespace-collapsed — for tolerant keyword matching. */
+/** Lowercase, accent-free, whitespace-collapsed, for tolerant keyword matching. */
 export function foldText(input) {
   return stripAccents(decodeEntities(input ?? ''))
     .replace(UNICODE_SPACE_RE, ' ')
@@ -229,7 +229,7 @@ export function detectChallenge({
   // Body markers only convict a page that shows no sign of being the real site.
   // Radware injects its sensor into pages it lets through as well, so a page
   // carrying CENAPRED's own content must never be rejected for mentioning
-  // perfdrive. A served challenge page contains no volcano content at all — that
+  // perfdrive. A served challenge page contains no volcano content at all; that
   // is the discriminator, confirmed against a live challenge response.
   const foldedBody = foldText(String(html ?? '').slice(0, 400_000));
   if (!foldedBody.includes('popocat')) {
@@ -429,7 +429,7 @@ export function parseSeries(html) {
       warnings.push(
         ISO_LOOKING_ROW_RE.test(block.body)
           ? `chart rows for [${label}] look ISO-formatted (YYYY-MM-DD); parser expects `
-            + 'day-first DD-MM-YYYY — the upstream format may have changed'
+            + 'day-first DD-MM-YYYY; the upstream format may have changed'
           : `chart rows for [${label}] had no recognisable DD-MM-YYYY labels`,
       );
     }
@@ -767,8 +767,8 @@ export function parseSo2(text) {
  *
  * CENAPRED renders one global "last reading" on *every* page, including reports
  * from years before the reading was taken. Attributing it to an old report would
- * fabricate data, so anything outside the window — or any reading whose date we
- * cannot establish — is dropped entirely.
+ * fabricate data, so anything outside the window (or any reading whose date we
+ * cannot establish) is dropped entirely.
  *
  * @returns {{so2_emissions_tons_per_day: number|null, so2_measurement_date: string|null, suppressed: string|null}}
  */

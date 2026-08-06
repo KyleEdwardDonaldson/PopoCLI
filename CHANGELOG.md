@@ -5,77 +5,88 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-08-05
+## [1.0.0] - 2026-08-06
 
 Popo no longer scrapes CENAPRED. It reads a published JSON feed instead.
 
+This is a full rewrite of how the tool gets its data, and it changes the public
+API, so it lands as 1.0.0. Version 0.2.0 was developed but never released; its
+changes are folded in here.
+
 ### Fixed
-- **The CLI was completely broken.** CENAPRED put Radware Bot Manager in front
+
+* **The CLI was completely broken.** CENAPRED put Radware Bot Manager in front
   of the site, which serves an HTTP 200 challenge page to every non-browser
   client. Every command failed with `Parse("Could not find date in report")`
-  because the parser was being handed a challenge page. No amount of header
-  tuning gets past it, so per-user scraping was abandoned.
-- Historical fetches used a `?fecha=YYYY-MM-DD` query string that the site does
-  not support. Historical reports are a POST keyed by an opaque sequential id,
-  so `popo get <date>` could never have worked against the live site.
-- The chart-data parser searched for ISO `YYYY-MM-DD` inside a series whose rows
-  are day-first (`['27-04-2022', 40, '#2fc1f1']`), so it never matched.
-- Compound wind directions were misread: `oestenoroeste` matched the shorter
-  `noroeste` first and resolved WNW as NW. Matching is now longest-first.
-- Text wrapping counted bytes rather than characters, wrapping accented Spanish
-  short.
+  because the parser was handed a challenge page rather than a report. No
+  combination of headers gets past it, so per-user scraping was abandoned.
+* **Historical fetches could never have worked.** `fetch_date` used a
+  `?fecha=YYYY-MM-DD` query string the site does not support. Historical
+  reports are a POST keyed by an opaque sequential id.
+* **The chart parser never matched.** It searched for ISO `YYYY-MM-DD` inside a
+  series whose rows are day first, for example `['27-04-2022', 40, '#2fc1f1']`.
+* **Compound wind directions were misread.** `oestenoroeste` matched the
+  shorter `noroeste` first, resolving west-northwest as north-west. Matching is
+  now longest first and covered by tests.
+* **Text wrapping counted bytes rather than characters**, wrapping accented
+  Spanish short.
 
 ### Added
-- `popo index` — show what the archive covers.
-- `--feed` flag and `POPO_FEED_BASE` env var to read from a fork, a mirror, or a
-  local directory. Local paths work offline.
-- `ashfall_reports` field, which the previous scraper discarded.
-- `docs/feed-schema.md` specifying the feed contract.
-- Scheduled ingestion job that publishes the feed.
+
+* `popo index`, showing what the archive covers.
+* `--feed` and `POPO_FEED_BASE` for reading from a fork, a mirror, or a local
+  directory. Local paths work fully offline.
+* `ashfall_reports`, capturing the places where ashfall was reported. The
+  previous scraper discarded this.
+* [`docs/feed-schema.md`](docs/feed-schema.md), specifying the feed contract.
+* An ingestion pipeline under `ingest/` driving real Chromium, with `latest`,
+  resumable `backfill`, scheduled `extend`, `verify` and offline `parse`
+  commands.
+* Scheduled workflows: twice-daily ingest, a daily history drip, and a manual
+  ranged backfill.
 
 ### Changed
-- **Breaking:** `Scraper` is replaced by `Feed`. `fetch_latest()` → `latest()`,
-  `fetch_date(d)` → `get(d)`.
-- **Breaking:** counter fields are now `Option<u32>`. The archive spans decades
-  and older reports omit metrics entirely; `None` means "not reported", which is
-  not the same as `Some(0)`.
-- **Breaking:** `wind_direction` serializes as `"NNW"` rather than `"n-n-w"`.
-- **Breaking:** `report_time` and `scraped_at` are replaced by `ingested_at`.
-- SO₂ is only recorded when the measurement is contemporaneous with the report.
+
+* **Breaking.** `Scraper` is replaced by `Feed`. `fetch_latest()` becomes
+  `latest()`, and `fetch_date(d)` becomes `get(d)`.
+* **Breaking.** Counter fields are now `Option<u32>`. The archive spans decades
+  and older reports omit metrics entirely, so `None` means "not reported",
+  which is not the same as `Some(0)`.
+* **Breaking.** `alert_level`, `alert_phase` and `summary_spanish` are now
+  optional, because records harvested from a neighbouring day's counter window
+  legitimately lack them. Such records are flagged `partial`.
+* **Breaking.** `wind_direction` serialises as `"NNW"` rather than `"n-n-w"`.
+* **Breaking.** `report_time` and `scraped_at` are replaced by `ingested_at`.
+* SO₂ is only recorded when the measurement is contemporaneous with the report.
   CENAPRED renders one global "last reading" on every page, so the old code
   would happily stamp a 2024 reading onto a 2022 report.
-- Dropped the `scraper` crate dependency.
+* Dropped the `scraper` crate dependency. The CLI no longer parses HTML at all.
+* `Cargo.lock` is now committed, and the published crate excludes the feed data
+  and ingestion tooling.
+
+### Data quality
+
+* **Week-year chart labels are repaired.** CENAPRED formats chart labels with a
+  week-based year rather than a calendar year, so on reports spanning a year
+  boundary the last days of December are stamped with the following year. Left
+  alone this filed real counter data up to eleven months into the future. Rows
+  are now judged against the median charted day and shifted a year when that
+  lands them back inside the window.
+* **Lost backfill anchors no longer punch holes.** A failed anchor used to skip
+  a whole 15 day window silently. Backfill now retreats one day at a time, and
+  `verify` sweeps for any hole that survives.
 
 ## [0.1.0] - 2025-10-07
 
 ### Added
-- Initial release of popo-cli
-- CLI tool for fetching Popocatépetl volcano monitoring data from CENAPRED
-- Support for latest report fetching (`popo latest`, `popo json`)
-- Historical date queries (`popo get YYYY-MM-DD`)
-- Alert status display (`popo alert`)
-- JSON and human-readable output formats
-- Rust library API for programmatic access
-- Comprehensive data extraction:
-  - Seismic activity (exhalations, explosions, volcanotectonic events)
-  - Tremor minutes (total, high-frequency, harmonic)
-  - Alert levels and phases
-  - Wind direction (16-point compass)
-  - SO₂ emissions data
-  - Media URLs (images and videos)
-- Spanish date parsing for all 12 months
-- Cross-platform support (Linux, macOS, Windows)
-- Complete test suite (42 tests):
-  - Unit tests for parsing logic
-  - Date parsing tests (27 tests)
-  - Historical fetch integration tests (8 tests)
 
-### Technical Details
-- Built with Rust 2021 edition
-- Uses reqwest for HTTP requests
-- HTML parsing with scraper crate
-- CLI powered by clap
-- Serde for JSON serialization
+* Initial release.
+* CLI for fetching Popocatépetl monitoring data from CENAPRED.
+* Latest report, historical dates, alert status, JSON and human readable output.
+* Rust library API.
+* Extraction of seismic activity, tremor breakdown, alert levels, wind
+  direction, SO₂ and media URLs.
+* Spanish date parsing and cross-platform support.
 
-[0.2.0]: https://github.com/KyleEdwardDonaldson/PopoCLI/releases/tag/v0.2.0
+[1.0.0]: https://github.com/KyleEdwardDonaldson/PopoCLI/releases/tag/v1.0.0
 [0.1.0]: https://github.com/KyleEdwardDonaldson/PopoCLI/releases/tag/v0.1.0

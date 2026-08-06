@@ -351,7 +351,7 @@ describe('challenge detection', () => {
 
   it('calls a CENAPRED page with no report "not a report", not "blocked"', () => {
     // Radware's sensor is injected site-wide, so an id_registro that simply has
-    // no report must not be mistaken for a block — backfill has to tell them
+    // no report must not be mistaken for a block; backfill has to tell them
     // apart to keep walking history.
     const emptyPage = '<html><head><title>Reporte Volcán</title>'
       + '<script>ssConf("cu", "validate.perfdrive.com, ssc");</script></head>'

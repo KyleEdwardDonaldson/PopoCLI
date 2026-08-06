@@ -8,7 +8,7 @@ pub const SCHEMA_VERSION: u32 = 1;
 ///
 /// Counter fields are `Option` because the archive spans ~26 years and older
 /// windows occasionally omit a day entirely. A day that is present with no
-/// activity is `Some(0)` — `None` means "not reported", not "zero".
+/// activity is `Some(0)`; `None` means "not reported", not "zero".
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VolcanoReport {
     #[serde(default = "default_schema_version")]
@@ -302,7 +302,7 @@ mod tests {
     }
 
     /// Backfill harvests a 15-day counter window from a single page. The other
-    /// 14 days get counters only — report-level detail is explicitly `null`
+    /// 14 days get counters only; report-level detail is explicitly `null`
     /// rather than copied across from a neighbouring day.
     #[test]
     fn test_partial_record_deserializes() {
