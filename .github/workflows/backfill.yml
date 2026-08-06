@@ -114,11 +114,28 @@ jobs:
             echo "::warning title=Blocked part way::CENAPRED served a challenge during the backfill. Anything already fetched is still committed; re-run the same range to resume."
           fi
 
+      # A lost anchor leaves a run of missing days that nothing else notices:
+      # the feed still looks healthy and the index is still self-consistent.
+      # Sweep for holes and close them before anything is committed.
+      - name: Close any gaps
+        id: verify
+        if: inputs.dry_run != true
+        env:
+          DELAY_MS: ${{ inputs.delay_ms }}
+        run: |
+          status=0
+          xvfb-run -a node ingest/index.mjs verify --refill --delay-ms "$DELAY_MS" || status=$?
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+
+          if [ "$status" -eq 3 ]; then
+            echo "::warning title=Gaps remain::Some missing days could not be refilled. Re-run verify, or backfill the affected range directly."
+          fi
+
       # Runs even when the backfill was blocked, so partial progress is kept.
       # Backfill is resumable, so re-running the same range picks up where it
       # stopped rather than re-fetching.
       - name: Commit backfilled feed
-        if: steps.backfill.outputs.changed == 'true' && inputs.dry_run != true
+        if: always() && inputs.dry_run != true
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
@@ -132,7 +149,7 @@ jobs:
 
           git commit \
             -m "data: backfill ${{ inputs.from }}..${{ inputs.to }}" \
-            -m "Ingested from CENAPRED by .github/workflows/backfill.yml (${{ steps.backfill.outputs.requests }} requests, result: ${{ steps.backfill.outputs.result }})."
+            -m "Ingested from CENAPRED by .github/workflows/backfill.yml (${{ steps.backfill.outputs.requests }} requests, result: ${{ steps.backfill.outputs.result }}, gaps remaining: ${{ steps.verify.outputs.gaps }})."
 
           for attempt in 1 2 3; do
             if git push origin "HEAD:${GITHUB_REF_NAME}"; then
@@ -154,13 +171,23 @@ jobs:
             echo "- requests: \`${{ steps.backfill.outputs.requests }}\`"
             echo "- result: \`${{ steps.backfill.outputs.result }}\`"
             echo "- changed: \`${{ steps.backfill.outputs.changed }}\`"
+            echo "- gaps remaining: \`${{ steps.verify.outputs.gaps }}\`"
             if [ "${{ steps.backfill.outputs.status }}" = "2" ]; then
               echo ""
               echo "Blocked part way through. Progress was committed; re-run the same range to resume."
             fi
+            if [ "${{ steps.verify.outputs.status }}" = "3" ]; then
+              echo ""
+              echo "Gaps could not be closed. Re-run this workflow over the affected range."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Surface the real outcome only after the data has been safely committed.
-      - name: Propagate backfill status
-        if: steps.backfill.outputs.status != '0'
-        run: exit ${{ steps.backfill.outputs.status }}
+      # Surface the real outcome only after the data has been safely committed,
+      # so a block or an unclosed gap never costs the work already done.
+      - name: Propagate status
+        if: steps.backfill.outputs.status != '0' || steps.verify.outputs.status != '0'
+        run: |
+          backfill='${{ steps.backfill.outputs.status }}'
+          verify='${{ steps.verify.outputs.status }}'
+          if [ "${backfill:-0}" != "0" ]; then exit "$backfill"; fi
+          exit "${verify:-0}"

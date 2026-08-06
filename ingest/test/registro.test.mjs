@@ -13,6 +13,7 @@ import {
   addDays,
   diffDays,
   eachDay,
+  findGaps,
   isoFromParts,
   isValidIsoDate,
   rfc3339,
@@ -108,5 +109,57 @@ describe('date helpers', () => {
   it('emits RFC 3339 UTC without milliseconds', () => {
     assert.equal(rfc3339(new Date('2026-08-05T17:04:00.123Z')), '2026-08-05T17:04:00Z');
     assert.match(rfc3339(), /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+});
+
+describe('findGaps', () => {
+  it('returns nothing for a contiguous run', () => {
+    assert.deepEqual(findGaps(eachDay('2024-01-01', '2024-01-10')), []);
+  });
+
+  // The failure this exists to catch: a backfill anchor dies and takes a whole
+  // 15-day window with it, leaving a hole nothing else notices. Observed live
+  // as 2023-11-16..2023-11-30.
+  it('finds a lost backfill window', () => {
+    const dates = [
+      ...eachDay('2023-11-01', '2023-11-15'),
+      ...eachDay('2023-12-01', '2023-12-10'),
+    ];
+    assert.deepEqual(findGaps(dates), [
+      {
+        after: '2023-11-15',
+        before: '2023-12-01',
+        from: '2023-11-16',
+        to: '2023-11-30',
+        days: 15,
+      },
+    ]);
+  });
+
+  it('finds several gaps, ascending', () => {
+    const dates = ['2024-01-01', '2024-01-03', '2024-01-04', '2024-01-08'];
+    const gaps = findGaps(dates);
+    assert.equal(gaps.length, 2);
+    assert.deepEqual(gaps.map((g) => [g.from, g.to, g.days]), [
+      ['2024-01-02', '2024-01-02', 1],
+      ['2024-01-05', '2024-01-07', 3],
+    ]);
+  });
+
+  it('tolerates unsorted input, duplicates and junk', () => {
+    const dates = ['2024-01-04', '2024-01-01', '2024-01-01', 'not-a-date', '2024-01-05'];
+    assert.deepEqual(findGaps(dates).map((g) => [g.from, g.to]), [['2024-01-02', '2024-01-03']]);
+  });
+
+  it('handles fewer than two dates', () => {
+    assert.deepEqual(findGaps([]), []);
+    assert.deepEqual(findGaps(['2024-01-01']), []);
+  });
+
+  it('spans a year boundary', () => {
+    const dates = ['2023-12-30', '2024-01-03'];
+    assert.deepEqual(findGaps(dates), [
+      { after: '2023-12-30', before: '2024-01-03', from: '2023-12-31', to: '2024-01-02', days: 3 },
+    ]);
   });
 });

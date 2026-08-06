@@ -105,6 +105,16 @@ jobs:
           fi
           exit "$status"
 
+      # Offline canary. Costs nothing and needs no browser, but surfaces holes
+      # in the archive the day they appear rather than months later. Refilling
+      # is the backfill workflow's job, so this only ever warns.
+      - name: Check the archive for gaps
+        if: always()
+        run: |
+          if ! node ingest/index.mjs verify --quiet; then
+            echo "::warning title=Archive has gaps::Run the backfill workflow over the affected range, or 'verify --refill' locally."
+          fi
+
       - name: Report no-op
         if: steps.ingest.outputs.changed != 'true'
         run: |

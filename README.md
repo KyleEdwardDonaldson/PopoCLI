@@ -315,8 +315,16 @@ npm test                        # offline parser tests
 
 node index.mjs latest           # ingest today's report
 node index.mjs backfill --from 2022-01-01 --to 2022-12-31
+node index.mjs verify           # sweep for missing days (offline)
+node index.mjs verify --refill  # ...and fetch whatever is missing
 node index.mjs parse page.html  # parse saved HTML offline
 ```
+
+`verify` exists because a lost backfill anchor is invisible: the feed still
+looks healthy, `index.json` is still self-consistent, and only a day-by-day
+sweep reveals the hole. It exits `3` when it finds gaps it did not close, so it
+can gate CI. The backfill workflow runs `verify --refill` automatically before
+committing; the daily workflow runs it read-only as a canary.
 
 Two things are load-bearing and easy to break:
 

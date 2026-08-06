@@ -74,6 +74,30 @@ export function eachDay(from, to) {
   return out;
 }
 
+/**
+ * Missing runs inside a daily sequence of ISO dates.
+ *
+ * The archive is meant to be one report per day, so any jump larger than a day
+ * is a hole — usually an anchor that failed mid-backfill. Returns one entry per
+ * hole, ascending, with the inclusive range of dates that are absent.
+ */
+export function findGaps(dates) {
+  const sorted = [...new Set(dates)].filter(isValidIsoDate).sort();
+  const gaps = [];
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const span = diffDays(sorted[i], sorted[i + 1]);
+    if (span <= 1) continue;
+    gaps.push({
+      after: sorted[i],
+      before: sorted[i + 1],
+      from: addDays(sorted[i], 1),
+      to: addDays(sorted[i + 1], -1),
+      days: span - 1,
+    });
+  }
+  return gaps;
+}
+
 /** RFC 3339 UTC timestamp with second precision, e.g. `2026-08-05T17:04:00Z`. */
 export function rfc3339(date = new Date()) {
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z');

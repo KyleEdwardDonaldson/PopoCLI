@@ -38,13 +38,15 @@ import {
   writeIndex,
   writeLatest,
 } from './lib/store.mjs';
-import { addDays, diffDays, isValidIsoDate, rfc3339, todayIso } from './lib/dates.mjs';
+import { addDays, diffDays, findGaps, isValidIsoDate, rfc3339, todayIso } from './lib/dates.mjs';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const EXIT_OK = 0;
 const EXIT_ERROR = 1;
 const EXIT_BLOCKED = 2;
+/** `verify` found holes in the archive that it did not close. */
+const EXIT_GAPS = 3;
 
 /** A mistake in how the command was invoked — reported without a stack trace. */
 class UsageError extends Error {
@@ -59,6 +61,7 @@ const USAGE = `PopoCLI feed ingester
 Usage:
   node ingest/index.mjs latest [options]
   node ingest/index.mjs backfill --from <YYYY-MM-DD> --to <YYYY-MM-DD> [options]
+  node ingest/index.mjs verify [options]
   node ingest/index.mjs reindex [options]
   node ingest/index.mjs parse <file.html> [options]
 
@@ -68,6 +71,9 @@ Commands:
   backfill    Walk history backwards from --to to --from. Each report page embeds
               a ~15-day window of all four counter series, so this costs roughly
               one request per fifteen days. Resumable and rate-limited.
+  verify      Sweep the archive for missing days and report them. With
+              --refill, fetch what is missing. A lost anchor leaves a hole that
+              nothing else notices, so run this after every backfill.
   reindex     Rebuild data/index.json and data/latest.json from disk. No network.
   parse       Parse a saved HTML file and print the report JSON. No network.
 
@@ -93,11 +99,19 @@ Options:
                         counter-only record, to turn them into full reports
   --step <n>            Fallback backfill step in days when a window cannot be
                         measured (default: 15)
+  --max-consecutive-failures <n>
+                        Failed anchors in a row before backfill gives up on a
+                        region and skips a whole window (default: 3). Below
+                        that it retreats one day at a time, so a transient
+                        failure costs a day rather than fifteen.
+  --refill              verify only: fetch the missing days it finds
+  --max-gaps <n>        verify only: how many gaps to refill per run (default: 20)
   --max-requests <n>    Stop after this many network requests
   --quiet               Only print warnings and errors
   --help                Show this message
 
-Exit codes: 0 success (including "no new report"), 1 error, 2 blocked by the WAF.
+Exit codes: 0 success (including "no new report"), 1 error, 2 blocked by the WAF,
+3 verify found gaps it did not close.
 `;
 
 // ---------------------------------------------------------------------------
@@ -316,6 +330,9 @@ async function commandBackfill(options, log) {
   const maxRequests = num(options, 'max-requests', Number.POSITIVE_INFINITY);
   const retries = num(options, 'retries', 3);
   const maxIdCorrections = 3;
+  // How many anchors in a row may fail before we accept the region is bad and
+  // skip a whole window rather than crawling it a day at a time.
+  const maxConsecutiveFailures = Math.max(1, num(options, 'max-consecutive-failures', 3));
 
   const onDisk = new Set(await listReportDates(dataDir));
   const totals = { created: 0, updated: 0, unchanged: 0, skipped: 0 };
@@ -324,6 +341,7 @@ async function commandBackfill(options, log) {
   let anchor = to;
   let blocked = null;
   let exhausted = false;
+  let consecutiveFailures = 0;
   const failures = [];
 
   log.info(
@@ -413,9 +431,25 @@ async function commandBackfill(options, log) {
       }
 
       if (!parsed) {
-        anchor = addDays(anchor, -fallbackStep);
+        // Stepping a whole window here would punch a 15-day hole in the archive
+        // for what is usually a transient failure. Stepping back a single day
+        // instead picks a different id whose window still overlaps almost all
+        // of the one we just missed, so the cost of a blip is one day, not
+        // fifteen. Only give up on the region after repeated failures.
+        consecutiveFailures += 1;
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          log.warn(
+            `${consecutiveFailures} consecutive failures around ${anchor}; `
+            + `skipping a full ${fallbackStep}-day window. Run "verify --refill" afterwards.`,
+          );
+          anchor = addDays(anchor, -fallbackStep);
+          consecutiveFailures = 0;
+        } else {
+          anchor = addDays(anchor, -1);
+        }
         continue;
       }
+      consecutiveFailures = 0;
 
       const results = await persistParsedPage(parsed, {
         dataDir, dryRun, force, writePartials, log,
@@ -485,6 +519,84 @@ async function commandReindex(options, log) {
   return EXIT_OK;
 }
 
+/**
+ * Report — and optionally close — holes in the archive.
+ *
+ * A backfill that loses an anchor leaves a run of missing days that nothing
+ * else notices: the feed still looks healthy, the index is still internally
+ * consistent, and only a date-by-date sweep reveals it. This makes that sweep
+ * a first-class command so it can gate CI.
+ */
+async function commandVerify(options, log) {
+  const dataDir = path.resolve(options['data-dir'] ?? path.join(ROOT_DIR, 'data'));
+  const refill = flag(options, 'refill', false);
+  const maxGaps = num(options, 'max-gaps', 20);
+
+  const dates = await listReportDates(dataDir);
+  if (dates.length === 0) {
+    log.warn('no reports on disk; nothing to verify');
+    await setGithubOutput({ gaps: '0', result: 'verify' });
+    return EXIT_OK;
+  }
+
+  const sorted = [...dates].sort();
+  const from = options.from ?? sorted[0];
+  const to = options.to ?? sorted[sorted.length - 1];
+  const inRange = sorted.filter((d) => d >= from && d <= to);
+  let gaps = findGaps(inRange);
+
+  log.info(`verifying ${from}..${to} — ${inRange.length} reports on disk`);
+  if (gaps.length === 0) {
+    log.info('no gaps: every day in range is present');
+    await setGithubOutput({ gaps: '0', result: 'verify' });
+    return EXIT_OK;
+  }
+
+  const totalMissing = gaps.reduce((sum, g) => sum + g.days, 0);
+  log.warn(`${gaps.length} gap(s) covering ${totalMissing} missing day(s):`);
+  for (const gap of gaps) log.warn(`  ${gap.from}..${gap.to} (${gap.days} day(s))`);
+
+  if (!refill) {
+    log.warn('re-run with --refill to fetch the missing days');
+    await setGithubOutput({ gaps: String(gaps.length), result: 'verify' });
+    return EXIT_GAPS;
+  }
+
+  const targets = gaps.slice(0, maxGaps);
+  if (targets.length < gaps.length) {
+    log.warn(`refilling the first ${targets.length} of ${gaps.length} gap(s); re-run for the rest`);
+  }
+
+  let blocked = false;
+  for (const gap of targets) {
+    log.info(`refilling ${gap.from}..${gap.to}`);
+    // Anchor on the day after the gap so the window reaches back across it even
+    // when the first id inside the gap is the one that failed.
+    const status = await commandBackfill(
+      { ...options, from: gap.from, to: gap.before, refill: false },
+      log,
+    );
+    if (status === EXIT_BLOCKED) {
+      blocked = true;
+      log.error('blocked while refilling; stopping. Re-run once the block lapses.');
+      break;
+    }
+  }
+
+  const after = findGaps((await listReportDates(dataDir)).sort().filter((d) => d >= from && d <= to));
+  gaps = after;
+  await setGithubOutput({ gaps: String(gaps.length), result: 'verify-refill' });
+
+  if (blocked) return EXIT_BLOCKED;
+  if (gaps.length > 0) {
+    log.warn(`${gaps.length} gap(s) remain after refilling:`);
+    for (const gap of gaps) log.warn(`  ${gap.from}..${gap.to} (${gap.days} day(s))`);
+    return EXIT_GAPS;
+  }
+  log.info('all gaps closed');
+  return EXIT_OK;
+}
+
 async function commandParse(options, positionals, log) {
   const file = positionals[0];
   if (!file) throw new UsageError('parse needs a path to a saved HTML file');
@@ -527,6 +639,8 @@ async function main(argv) {
       return commandBackfill(options, log);
     case 'reindex':
       return commandReindex(options, log);
+    case 'verify':
+      return commandVerify(options, log);
     case 'parse':
       return commandParse(options, positionals, log);
     default:
