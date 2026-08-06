@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "date": "2024-12-24",
+  "exhalations": 27,
+  "volcanotectonic_events": 1,
+  "tremor_minutes_total": 786,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": null,
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 24 de Diciembre de 2024\n\nSe detectaron 27 exhalaciones de baja intensidad, acompañadas de vapor de agua, gases volcánicos y bajas cantidades de ceniza (imagen 1) (imagen 2)\n\nAdicionalmente, se registraron 786 minutos de tremor de alta frecuencia y de baja amplitud. (video 1)\n\nTambién se detecto un sismo volcanotectónico, ocurrido ayer a las 22:56 h. con magnitud calculada de 1.4.\n\nEl Centro Nacional de Comunicación y Operación de Protección Civil (Cenacom) reportó el día de ayer, ligera caída de ceniza en los municipios de Chiautzingo, Quimixtlán, Chichiquila y Chilchota, del estado de Puebla.\n\nDurante la mañana y al momento de este reporte se ha observado una emisión continua de vapor de agua, gases volcánicos y ceniza, con dispersión hacia el este (imagen 3)\n\nEl Semáforo de Alerta Volcánica del Popocatépetl se encuentra en Amarillo Fase 2. Los escenarios previstos para esta fase son:\n\nAlgunas explosiones de tamaño menor a moderado\n\nOcurrencia de tremor de amplitud variable\n\nLluvias de ceniza leves a moderadas en poblaciones circundantes y en algunas ciudades más lejanas\n\nExpulsión de fragmentos incandescentes dentro del radio de exclusión de 12 kilómetros\n\nPodría esperarse la ocurrencia de lahares que bajen por las cañadas, debido a la acumulación de ceniza en las laderas y su interacción con las lluvias esperadas en las próximas semanas\n\nLa información aquí publicada es el resultado del monitoreo permanente al volcán Popocatépetl, que se realiza coordinadamente con la Universidad Nacional Autónoma de México. El reporte se publica diariamente a las 11 de la mañana, aquí se resume la actividad registrada durante las últimas 24 horas; esto es, de 10 de la mañana del día anterior a las 10 de la mañana del día en curso. Si ocurre un evento extraordinario, se reportará inmediatamente. Para consulta de reportes anteriores dé clic aquí No hacer caso a rumores y estar atentos a la información oficial que emita el Cenapred y la Coordinación Nacional de Protección Civil en sus cuentas oficiales: Cenapred: www.gob.mx/cenapred CNPC: www.preparados.gob.mx Twitter: @CNPC_MX Facebook: www.facebook.com/CNPCmx Recursos informativos de riesgos volcánicos\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 24 de Diciembre de 2024\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [
+    "Chiautzingo, Quimixtlán, Chichiquila y Chilchota, del estado de Puebla"
+  ],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p24122401.jpg",
+    "https://www.cenapred.unam.mx/media/p24122402.jpg",
+    "https://www.cenapred.unam.mx/media/p24122403.jpg"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v24122401.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=9972&caso_reporte=0&fecha=2024-12-24",
+  "ingested_at": "2026-08-06T13:07:15Z"
+}

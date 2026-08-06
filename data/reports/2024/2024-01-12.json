@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "date": "2024-01-12",
+  "exhalations": 55,
+  "volcanotectonic_events": 0,
+  "tremor_minutes_total": 875,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": null,
+  "alert_phase": null,
+  "wind_direction": null,
+  "summary_spanish": null,
+  "ashfall_reports": [],
+  "image_urls": [],
+  "video_urls": [],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=9627&caso_reporte=0&fecha=2024-01-14",
+  "ingested_at": "2026-08-06T13:09:04Z",
+  "partial": true
+}
