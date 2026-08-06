@@ -1,0 +1,175 @@
+name: Extend archive history
+
+# The slow drip that fills in the deep history.
+#
+# CENAPRED rate-limited us after roughly 170 requests inside an hour, so the
+# remaining ~20 years are fetched one chunk per day instead of in a burst. At a
+# year per run this is ~25 requests daily — indistinguishable from ordinary
+# traffic — and finishes in about three weeks unattended.
+#
+# Self-limiting: once the walk runs out of upstream reports the ingester writes
+# data/.backfill-complete and every later run becomes a no-op costing nothing.
+on:
+  schedule:
+    # 04:40 UTC, well clear of the daily ingest runs at 18:20 and 21:20.
+    - cron: '40 4 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'How far back to reach this run, in days'
+        default: '365'
+        type: string
+      delay_ms:
+        description: 'Politeness delay between requests, in ms'
+        default: '2000'
+        type: string
+      max_requests:
+        description: 'Hard cap on network requests'
+        default: '30'
+        type: string
+      dry_run:
+        description: 'Parse and report, but write and commit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Shares a group with the daily ingest and the manual backfill, so only one job
+# ever touches data/ or talks to CENAPRED at a time.
+concurrency:
+  group: ingest-feed
+  cancel-in-progress: false
+
+jobs:
+  extend:
+    name: Extend history
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: ingest/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ingest
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('ingest/package-lock.json') }}
+
+      # The full Chromium build, not chromium-headless-shell, which Radware
+      # challenges. See .github/workflows/ingest.yml for the same reasoning.
+      - name: Install Chromium
+        working-directory: ingest
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensure a virtual display is available
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Run unit tests
+        working-directory: ingest
+        run: npm test
+
+      # Captures the status rather than failing here: a run that is blocked part
+      # way through has usually already written good data, and that work must be
+      # committed rather than discarded.
+      - name: Extend
+        id: extend
+        env:
+          DAYS: ${{ inputs.days || '365' }}
+          DELAY_MS: ${{ inputs.delay_ms || '2000' }}
+          MAX_REQUESTS: ${{ inputs.max_requests || '30' }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(extend --days "$DAYS" --delay-ms "$DELAY_MS" --max-requests "$MAX_REQUESTS")
+          if [ "${DRY_RUN:-false}" = "true" ]; then args+=(--dry-run); fi
+
+          status=0
+          xvfb-run -a node ingest/index.mjs "${args[@]}" || status=$?
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+
+          # 2 means CENAPRED throttled us. That is expected occasionally on a
+          # daily drip and is not worth a red build: tomorrow's run resumes.
+          if [ "$status" -eq 2 ]; then
+            echo "::notice title=Throttled::CENAPRED served a challenge. Anything fetched first is committed; the next scheduled run resumes."
+          fi
+
+      - name: Close any gaps
+        id: verify
+        if: inputs.dry_run != true
+        env:
+          DELAY_MS: ${{ inputs.delay_ms || '2000' }}
+        run: |
+          status=0
+          xvfb-run -a node ingest/index.mjs verify --refill --delay-ms "$DELAY_MS" || status=$?
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit extended feed
+        if: always() && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+
+          git commit \
+            -m "data: extend history back to ${{ steps.extend.outputs.earliest }}" \
+            -m "Ingested from CENAPRED by .github/workflows/extend.yml (+${{ steps.extend.outputs.gained }} day(s), gaps remaining: ${{ steps.verify.outputs.gaps }})."
+
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}); rebasing onto origin and retrying."
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          done
+
+          echo "Could not push the extended feed after 3 attempts." >&2
+          exit 1
+
+      - name: Summarise
+        if: always() && steps.extend.outcome != 'skipped'
+        run: |
+          {
+            if [ "${{ steps.extend.outputs.exhausted }}" = "true" ]; then
+              echo "### Archive complete"
+              echo ""
+              echo "No reports earlier than \`${{ steps.extend.outputs.earliest }}\` exist upstream."
+              echo "\`data/.backfill-complete\` is written; later scheduled runs will do nothing."
+              echo "You can safely disable this workflow."
+            else
+              echo "### Extended history"
+              echo ""
+              echo "- earliest now: \`${{ steps.extend.outputs.earliest }}\`"
+              echo "- gained: \`${{ steps.extend.outputs.gained }}\` day(s)"
+              echo "- gaps remaining: \`${{ steps.verify.outputs.gaps }}\`"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Only a genuine error fails the build. Throttling (2) is routine on a
+      # drip, and unclosed gaps (3) are picked up by the next run.
+      - name: Propagate status
+        if: steps.extend.outputs.status == '1'
+        run: exit 1

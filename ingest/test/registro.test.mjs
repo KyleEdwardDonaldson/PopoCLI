@@ -18,6 +18,7 @@ import {
   isValidIsoDate,
   rfc3339,
 } from '../lib/dates.mjs';
+import { extendRange } from '../index.mjs';
 
 describe('id_registro mapping', () => {
   it('reproduces the verified anchor', () => {
@@ -161,5 +162,29 @@ describe('findGaps', () => {
     assert.deepEqual(findGaps(dates), [
       { after: '2023-12-30', before: '2024-01-03', from: '2023-12-31', to: '2024-01-02', days: 3 },
     ]);
+  });
+});
+
+describe('extendRange', () => {
+  it('reaches back a chunk ending the day before the archive starts', () => {
+    assert.deepEqual(extendRange('2020-04-19', 365), {
+      from: '2019-04-20',
+      to: '2020-04-18',
+    });
+  });
+
+  it('never overlaps the day already held', () => {
+    const { to } = extendRange('2020-04-19', 30);
+    assert.equal(to, '2020-04-18');
+    assert.equal(diffDays(to, '2020-04-19'), 1);
+  });
+
+  it('covers exactly --days days', () => {
+    const { from, to } = extendRange('2010-01-01', 90);
+    assert.equal(diffDays(from, to) + 1, 90);
+  });
+
+  it('handles a single-day chunk and a year boundary', () => {
+    assert.deepEqual(extendRange('2021-01-01', 1), { from: '2020-12-31', to: '2020-12-31' });
   });
 });

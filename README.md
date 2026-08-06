@@ -315,10 +315,17 @@ npm test                        # offline parser tests
 
 node index.mjs latest           # ingest today's report
 node index.mjs backfill --from 2022-01-01 --to 2022-12-31
+node index.mjs extend           # walk one chunk further back (scheduled drip)
 node index.mjs verify           # sweep for missing days (offline)
 node index.mjs verify --refill  # ...and fetch whatever is missing
 node index.mjs parse page.html  # parse saved HTML offline
 ```
+
+`extend` fills the deep history on a schedule rather than in a burst. CENAPRED
+rate-limited us after roughly 170 requests in an hour, so the remaining years
+are fetched a chunk per day at a volume indistinguishable from ordinary
+traffic. It is self-limiting: once no earlier reports exist it writes
+`data/.backfill-complete` and every later run is a no-op.
 
 `verify` exists because a lost backfill anchor is invisible: the feed still
 looks healthy, `index.json` is still self-consistent, and only a day-by-day

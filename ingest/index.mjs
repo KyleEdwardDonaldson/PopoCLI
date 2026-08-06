@@ -61,6 +61,7 @@ const USAGE = `PopoCLI feed ingester
 Usage:
   node ingest/index.mjs latest [options]
   node ingest/index.mjs backfill --from <YYYY-MM-DD> --to <YYYY-MM-DD> [options]
+  node ingest/index.mjs extend [options]
   node ingest/index.mjs verify [options]
   node ingest/index.mjs reindex [options]
   node ingest/index.mjs parse <file.html> [options]
@@ -71,6 +72,10 @@ Commands:
   backfill    Walk history backwards from --to to --from. Each report page embeds
               a ~15-day window of all four counter series, so this costs roughly
               one request per fifteen days. Resumable and rate-limited.
+  extend      Walk the archive one chunk further back, for use on a schedule.
+              Reads the current earliest date and fetches --days before it.
+              Self-limiting: once no earlier reports exist it writes
+              data/.backfill-complete and later runs do nothing.
   verify      Sweep the archive for missing days and report them. With
               --refill, fetch what is missing. A lost anchor leaves a hole that
               nothing else notices, so run this after every backfill.
@@ -104,6 +109,7 @@ Options:
                         region and skips a whole window (default: 3). Below
                         that it retreats one day at a time, so a transient
                         failure costs a day rather than fifteen.
+  --days <n>            extend only: how far back to reach per run (default: 365)
   --refill              verify only: fetch the missing days it finds
   --max-gaps <n>        verify only: how many gaps to refill per run (default: 20)
   --max-requests <n>    Stop after this many network requests
@@ -597,6 +603,78 @@ async function commandVerify(options, log) {
   return EXIT_OK;
 }
 
+/** Marker written once the walk runs out of upstream data. */
+const COMPLETE_MARKER = '.backfill-complete';
+
+/**
+ * The next chunk to fetch when walking the archive further back.
+ * Exported for testing; contains no I/O.
+ */
+export function extendRange(earliest, days) {
+  const to = addDays(earliest, -1);
+  const from = addDays(to, -(Math.max(1, days) - 1));
+  return { from, to };
+}
+
+/**
+ * Walk the archive one chunk further back.
+ *
+ * Intended for a schedule rather than a person. CENAPRED rate-limited us after
+ * roughly 170 requests in an hour, so the remaining history is fetched as a
+ * slow drip: one chunk per day, at a volume indistinguishable from ordinary
+ * traffic. Self-limiting — once the walk runs out of upstream reports it drops
+ * a marker and every later run becomes a no-op.
+ */
+async function commandExtend(options, log) {
+  const dataDir = path.resolve(options['data-dir'] ?? path.join(ROOT_DIR, 'data'));
+  const days = num(options, 'days', 365);
+  const markerPath = path.join(dataDir, COMPLETE_MARKER);
+
+  try {
+    const marker = JSON.parse(await fs.readFile(markerPath, 'utf8'));
+    log.info(`archive already complete back to ${marker.earliest}; nothing to do`);
+    await setGithubOutput({ exhausted: 'true', gained: '0', earliest: marker.earliest, changed: 'false' });
+    return EXIT_OK;
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
+  const dates = await listReportDates(dataDir);
+  if (dates.length === 0) {
+    throw new UsageError('extend needs an existing archive; run `latest` first');
+  }
+
+  const earliest = [...dates].sort()[0];
+  const { from, to } = extendRange(earliest, days);
+  log.info(`archive starts at ${earliest}; extending back over ${from}..${to}`);
+
+  const status = await commandBackfill({ ...options, from, to }, log);
+
+  const after = [...(await listReportDates(dataDir))].sort()[0];
+  const gained = diffDays(after, earliest);
+  await setGithubOutput({ earliest: after, gained: String(gained) });
+
+  if (gained > 0) {
+    log.info(`extended by ${gained} day(s); archive now starts at ${after}`);
+    return status;
+  }
+
+  if (status === EXIT_BLOCKED) {
+    log.warn('blocked before anything earlier could be fetched; the next run will retry');
+    return status;
+  }
+
+  // Nothing earlier exists. Record it so the schedule stops asking.
+  log.info(`no reports earlier than ${after}; the archive is complete`);
+  await fs.writeFile(
+    markerPath,
+    `${JSON.stringify({ earliest: after, completed_at: rfc3339() }, null, 2)}\n`,
+    'utf8',
+  );
+  await setGithubOutput({ exhausted: 'true' });
+  return EXIT_OK;
+}
+
 async function commandParse(options, positionals, log) {
   const file = positionals[0];
   if (!file) throw new UsageError('parse needs a path to a saved HTML file');
@@ -641,6 +719,8 @@ async function main(argv) {
       return commandReindex(options, log);
     case 'verify':
       return commandVerify(options, log);
+    case 'extend':
+      return commandExtend(options, log);
     case 'parse':
       return commandParse(options, positionals, log);
     default:
