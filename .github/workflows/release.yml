@@ -13,6 +13,7 @@ jobs:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -40,17 +41,30 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # --locked builds against the committed Cargo.lock, so a release binary
+      # is reproducible rather than picking up whatever resolved that day.
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      # Rename to the asset name here rather than after download. Three of the
+      # four targets produce a file called `popo`, so flattening them into one
+      # directory later would silently overwrite all but the last.
+      - name: Stage binary
+        shell: bash
+        run: |
+          mkdir -p staged
+          cp "target/${{ matrix.target }}/release/${{ matrix.artifact_name }}" \
+             "staged/${{ matrix.asset_name }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
-          path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          path: staged/${{ matrix.asset_name }}
+          if-no-files-found: error
 
   release:
-    name: Create Release
+    name: Create release
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -61,21 +75,59 @@ jobs:
         with:
           path: artifacts
 
-      - name: List artifacts
-        run: ls -R artifacts/
-
-      - name: Prepare binaries
+      - name: Collect binaries
         run: |
+          set -euo pipefail
           mkdir -p release-binaries
-          find artifacts -type f -exec mv {} release-binaries/ \;
-          ls -lh release-binaries/
+          find artifacts -type f -exec cp {} release-binaries/ \;
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+          count=$(find release-binaries -type f | wc -l)
+          if [ "$count" -ne 4 ]; then
+            echo "Expected 4 binaries, found ${count}:" >&2
+            ls -l release-binaries >&2
+            exit 1
+          fi
+
+          cd release-binaries
+          sha256sum * > SHA256SUMS
+          echo "Release contents:"
+          ls -lh
+          cat SHA256SUMS
+
+      # Ship only this version's notes. Feeding the whole changelog would put
+      # every past release in the body of the newest one.
+      - name: Extract release notes
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          # Literal matching, not regex: a version like [1.0.0] inside a regex
+          # is a character class, which silently matches nothing.
+          awk -v hdr="## [${version}]" '
+            index($0, hdr) == 1               { capture = 1; next }
+            capture && index($0, "## [") == 1 { exit }
+            capture                           { print }
+          ' CHANGELOG.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "No changelog section found for ${version}; falling back to a pointer." >&2
+            echo "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/main/CHANGELOG.md)." \
+              > release-notes.md
+          fi
+
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "Install with \`cargo install popo-cli\`, or download a binary below."
+            echo "Verify a download against \`SHA256SUMS\`."
+          } >> release-notes.md
+
+          cat release-notes.md
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
         with:
           files: release-binaries/*
-          body_path: CHANGELOG.md
+          body_path: release-notes.md
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
