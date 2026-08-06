@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "date": "2023-06-03",
+  "exhalations": 107,
+  "volcanotectonic_events": 0,
+  "tremor_minutes_total": 319,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 3",
+  "wind_direction": "SE",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 03 de Junio de 2023\n\nPosibilidad de actividad explosiva importante de intensidad creciente que lanza fragmentos a distancias considerables\n\nLluvias de ceniza notorias sobre poblaciones y ciudades\n\nCrecimiento importante de domos y posibilidad de expulsión de magma\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 03 de Junio de 2023\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p0603231.jpeg",
+    "https://www.cenapred.unam.mx/media/p0603232.jpeg",
+    "https://www.cenapred.unam.mx/media/p0603233.jpeg"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v0603231.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=9402&caso_reporte=0&fecha=2023-06-03",
+  "ingested_at": "2026-08-06T13:14:58Z"
+}
