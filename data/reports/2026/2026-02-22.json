@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "date": "2026-02-22",
+  "exhalations": 12,
+  "volcanotectonic_events": 0,
+  "tremor_minutes_total": 0,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": "SW",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 22 de Febrero de 2026\n\nSe detectaron 12 exhalaciones acompañadas de vapor de agua, gases volcánicos y ceniza (imagen 1), (imagen 2), (video 1).\n\nLa Coordinación Estatal de Protección Civil Morelos reportó ligera caída de ceniza en los municipios de Yecapixtla y Tetela del volcán.\n\nAl momento de este reporte, sin visibilidad por nublados en la zona del cráter, cualquier emisión tendrá dirección suroeste (SO) (video 2).\n\nEl Semáforo de Alerta Volcánica del Popocatépetl se encuentra en Amarillo Fase 2.\n\nAlgunas explosiones de tamaño menor a moderado\n\nOcurrencia de tremor de amplitud variable\n\nLluvias de ceniza leves a moderadas en poblaciones circundantes y en algunas ciudades más lejanas\n\nExpulsión de fragmentos incandescentes dentro del radio de exclusión de 12 kilómetros\n\nPodría esperarse la ocurrencia de lahares que bajen por las cañadas, debido a la acumulación de ceniza en las laderas y su interacción con las lluvias esperadas en las próximas semanas\n\nLa información aquí publicada es el resultado del monitoreo permanente al volcán Popocatépetl, que se realiza coordinadamente con la Universidad Nacional Autónoma de México. El reporte se publica diariamente a las 11 de la mañana, aquí se resume la actividad registrada durante las últimas 24 horas; esto es, de 10 de la mañana del día anterior a las 10 de la mañana del día en curso. Si ocurre un evento extraordinario, se reportará inmediatamente. No hacer caso a rumores y estar atentos a la información oficial que emita el Cenapred y la Coordinación Nacional de Protección Civil en sus cuentas oficiales:\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 22 de Febrero de 2026\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [
+    "Yecapixtla y Tetela del volcán"
+  ],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p22022601.jpeg",
+    "https://www.cenapred.unam.mx/media/p22022602.jpeg"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v22022601.mp4",
+    "https://www.cenapred.unam.mx/media/v22022602.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=10400&caso_reporte=0&fecha=2026-02-22",
+  "ingested_at": "2026-08-06T11:41:24Z"
+}
