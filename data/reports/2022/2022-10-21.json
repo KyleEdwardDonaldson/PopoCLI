@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "date": "2022-10-21",
+  "exhalations": 62,
+  "volcanotectonic_events": 2,
+  "tremor_minutes_total": 251,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": "NE",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 21 de Octubre de 2022\n\nOctubre 21, 11:00 h (Octubre 21, 16:00 GMT) En las últimas 24 horas, mediante los sistemas de monitoreo del volcán Popocatépetl, se detectaron 62 exhalaciones, acompañadas de vapor de agua, gases volcánicos y ligeras cantidades de ceniza (imagen 1) (imagen 2) (imagen 3) (imagen 4). Adicionalmente, se contabilizaron 251 minutos de tremor, 139 minutos de baja amplitud y alta frecuencia y 112 minutos de tipo armónico. También se registraron dos sismos volcanotectónicos ayer a las 20:59 y hoy a las 04:56 hora local, con magnitud de 1.5 y 2.1, respectivamente. (vídeo 1) (vídeo 2). Al momento de este reporte se tiene visibilidad parcial al volcán debido a nublados en la zona. El CENAPRED exhorta a NO ACERCARSE al volcán y sobre todo al cráter, por el peligro que implica la caída de fragmentos balísticos (imagen 5) y, en caso de lluvias fuertes, alejarse de los fondos de barrancas por el peligro de flujos de lodo y escombro. El Semáforo de Alerta Volcánica del Popocatépetl se encuentra en AMARILLO FASE 2. Las recomendaciones para la población ante esta actividad son: No hacer caso a rumores y estar atentos a la información que emita la Coordinación Nacional de Protección Civil por sus canales y cuentas oficiales www.gob.mx/cenapred y @CNPC_MX Ante la probable caída de ceniza, se recomienda: 1. Cubrir nariz y boca con pañuelo o cubreboca. 2. Limpiar ojos y garganta con agua pura. 3. Utilizar lentes de armazón y evitar los de contacto para reducir la irritación ocular. 4. Cerrar ventanas o cubrirlas y permanecer lo más posible dentro de la casa. Los escenarios previstos para esta fase son: 1. Que continúe la actividad explosiva de escala baja a intermedia. 2. Lluvias de ceniza leves a moderadas en poblaciones cercanas. 3. Posibilidad de flujos piroclásticos y flujos de lodo de corto alcance. RECOMENDACIONES: Se hace especial énfasis en las siguientes recomendaciones: 1. Continuar con el radio de seguridad de 12 km, por lo que la permanencia en esa área no está permitida. 2. Controlar el tránsito entre Santiago Xalitzintla y San Pedro Nexapa, vía Paso de Cortés. 3. A las autoridades de Protección Civil, mantener sus procedimientos preventivos, de acuerdo con sus planes operativos. 4. A la población se le recomienda elevar la atención a los avisos de las autoridades de su localidad y se exhorta a no acercarse al volcán, y mucho menos al cráter. El monitoreo del volcán Popocatépetl se realiza de forma continua las 24 horas. Cualquier cambio en la actividad será reportado oportunamente. El nivel del Semáforo de Alerta Volcánica dependerá de la evolución de la actividad del volcán. JGCP\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 21 de Octubre de 2022\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p1021221.jpg",
+    "https://www.cenapred.unam.mx/media/p1021222.jpg",
+    "https://www.cenapred.unam.mx/media/p1021223.jpg",
+    "https://www.cenapred.unam.mx/media/p1021224.jpg",
+    "https://www.cenapred.unam.mx/media/p03041510.png"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v1021221.mp4",
+    "https://www.cenapred.unam.mx/media/v1021222.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=9177&caso_reporte=0&fecha=2022-10-21",
+  "ingested_at": "2026-08-06T13:24:01Z"
+}
