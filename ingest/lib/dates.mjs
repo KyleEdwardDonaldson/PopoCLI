@@ -40,6 +40,16 @@ export function addDays(iso, days) {
   return isoFromParts(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
 }
 
+/**
+ * Shift an ISO date by whole years, keeping month and day.
+ * Returns null when the result is not a real date (29 February).
+ */
+export function shiftYear(iso, years) {
+  if (!isValidIsoDate(iso)) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  return isoFromParts(y + years, m, d);
+}
+
 /** Whole days from `a` to `b` (positive when `b` is later). */
 export function diffDays(a, b) {
   return Math.round((toUtcMillis(b) - toUtcMillis(a)) / MS_PER_DAY);

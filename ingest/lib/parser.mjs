@@ -9,7 +9,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { diffDays, isoFromParts, isValidIsoDate, maxIso, minIso } from './dates.mjs';
+import { diffDays, isoFromParts, isValidIsoDate, maxIso, minIso, shiftYear } from './dates.mjs';
 
 export const SCHEMA_VERSION = 1;
 export const BASE_URL = 'https://www.cenapred.unam.mx';
@@ -448,6 +448,77 @@ export function coveredDatesOf(series) {
     for (const date of Object.keys(series?.[field] ?? {})) set.add(date);
   }
   return [...set].sort();
+}
+
+/**
+ * Widest plausible span for a single page's chart window. The real window is
+ * ~15 days; anything this far from the bulk of the rows is a mislabelled row,
+ * not data.
+ */
+export const MAX_WINDOW_SPAN_DAYS = 45;
+
+/**
+ * Repair chart rows whose label carries the wrong year.
+ *
+ * CENAPRED formats chart labels with a *week*-year (Java's `YYYY`) instead of a
+ * calendar year (`yyyy`). ISO week 1 of the next year begins in late December,
+ * so on a report covering a year boundary the last days of December are stamped
+ * with the following year: 29-31 December 2025 arrive labelled 2026. Left alone
+ * that files real counter data almost a year into the future.
+ *
+ * Rows are judged against the median charted day rather than the report date,
+ * because the report date is itself sometimes derived from these rows. A row
+ * too far from the median is shifted a year if that lands it back inside the
+ * window, and dropped if it does not.
+ */
+export function reconcileSeriesDates(series) {
+  const warnings = [];
+  const dates = coveredDatesOf(series);
+  if (dates.length < 3) return { series, warnings };
+
+  const median = dates[Math.floor(dates.length / 2)];
+  const isPlausible = (date) => Math.abs(diffDays(median, date)) <= MAX_WINDOW_SPAN_DAYS;
+
+  /** @type {Map<string, string|null>} */
+  const remap = new Map();
+  for (const date of dates) {
+    if (isPlausible(date)) continue;
+    const shifted = [-1, 1]
+      .map((delta) => shiftYear(date, delta))
+      .find((candidate) => candidate && isPlausible(candidate));
+    remap.set(date, shifted ?? null);
+  }
+
+  if (remap.size === 0) return { series, warnings };
+
+  const repaired = Object.fromEntries(COUNTER_FIELDS.map((f) => [f, {}]));
+  for (const field of COUNTER_FIELDS) {
+    for (const [date, value] of Object.entries(series?.[field] ?? {})) {
+      if (!remap.has(date)) {
+        repaired[field][date] = value;
+        continue;
+      }
+      const target = remap.get(date);
+      // A corrected row never overwrites one that was already labelled right.
+      if (target !== null && repaired[field][target] === undefined) {
+        repaired[field][target] = value;
+      }
+    }
+  }
+
+  const corrected = [...remap.entries()].filter(([, to]) => to !== null);
+  const dropped = [...remap.entries()].filter(([, to]) => to === null).map(([from]) => from);
+  if (corrected.length) {
+    warnings.push(
+      `corrected ${corrected.length} chart row(s) carrying a week-year instead of a calendar `
+        + `year: ${corrected.map(([from, to]) => `${from} -> ${to}`).join(', ')}`,
+    );
+  }
+  if (dropped.length) {
+    warnings.push(`dropped ${dropped.length} implausibly dated chart row(s): ${dropped.join(', ')}`);
+  }
+
+  return { series: repaired, warnings };
 }
 
 export function countersFor(series, date) {
@@ -979,8 +1050,14 @@ export function parseReportPage(html, { sourceUrl, ingestedAt, expectedDate = nu
     throw new NotAReportError('page does not look like a Popocatepetl report', { sourceUrl });
   }
 
-  const { series, warnings: seriesWarnings } = parseSeries(raw);
+  const { series: rawSeries, warnings: seriesWarnings } = parseSeries(raw);
   warnings.push(...seriesWarnings);
+
+  // Repair week-year labels before the date is derived: `parseReportDate` can
+  // fall back to the newest charted day, and a row stamped a year into the
+  // future would otherwise become the report date itself.
+  const { series, warnings: dateWarnings } = reconcileSeriesDates(rawSeries);
+  warnings.push(...dateWarnings);
 
   const { date: reportDate, source: dateSource } = parseReportDate(raw, series);
   if (!reportDate) {

@@ -17,6 +17,7 @@ import {
   mapAlertLevel,
   mapWindDirection,
   parseAlert,
+  reconcileSeriesDates,
   parseAshfall,
   parseChartRow,
   parseDayFirstDate,
@@ -529,5 +530,82 @@ describe('buildReport', () => {
     assert.equal(report.exhalations, null);
     assert.ok(!Object.hasOwn(report, 'partial'));
     assert.equal(buildReport({ date: '2026-08-05', partial: true }).partial, true);
+  });
+});
+
+describe('reconcileSeriesDates', () => {
+  const emptySeries = () => ({
+    exhalations: {},
+    volcanotectonic_events: {},
+    tremor_minutes_total: {},
+    explosions: {},
+  });
+
+  // CENAPRED stamps late-December rows with the *next* year, because their
+  // formatter uses a week-year (Java `YYYY`) rather than a calendar year.
+  // Observed live on the 2026-01-08 report: its window ran 2025-12-25..
+  // 2026-01-08, but 29-31 December were charted as 2026, filing real counter
+  // data almost a year into the future.
+  it('repairs late-December rows carrying next year', () => {
+    const series = emptySeries();
+    series.exhalations = {
+      '2025-12-25': 5,
+      '2025-12-26': 6,
+      '2025-12-27': 7,
+      '2025-12-28': 8,
+      '2026-12-29': 38,
+      '2026-12-30': 16,
+      '2026-12-31': 13,
+      '2026-01-01': 9,
+      '2026-01-02': 10,
+    };
+
+    const { series: fixed, warnings } = reconcileSeriesDates(series);
+
+    assert.equal(fixed.exhalations['2025-12-29'], 38);
+    assert.equal(fixed.exhalations['2025-12-30'], 16);
+    assert.equal(fixed.exhalations['2025-12-31'], 13);
+    assert.equal(fixed.exhalations['2026-12-29'], undefined);
+    assert.equal(fixed.exhalations['2026-12-31'], undefined);
+    // Correctly labelled rows are untouched.
+    assert.equal(fixed.exhalations['2025-12-25'], 5);
+    assert.equal(fixed.exhalations['2026-01-02'], 10);
+    assert.ok(warnings.some((w) => /week-year/.test(w)));
+  });
+
+  it('leaves an ordinary window alone', () => {
+    const series = emptySeries();
+    series.exhalations = { '2026-07-07': 1, '2026-07-08': 2, '2026-07-09': 3 };
+    const { series: fixed, warnings } = reconcileSeriesDates(series);
+    assert.deepEqual(fixed.exhalations, series.exhalations);
+    assert.deepEqual(warnings, []);
+  });
+
+  it('drops a row no year shift can explain', () => {
+    const series = emptySeries();
+    series.exhalations = {
+      '2026-07-07': 1,
+      '2026-07-08': 2,
+      '2026-07-09': 3,
+      '2019-03-04': 99,
+    };
+    const { series: fixed, warnings } = reconcileSeriesDates(series);
+    assert.equal(fixed.exhalations['2019-03-04'], undefined);
+    assert.equal(Object.keys(fixed.exhalations).length, 3);
+    assert.ok(warnings.some((w) => /implausibly dated/.test(w)));
+  });
+
+  // The report date can be derived from the newest charted day, so a row a
+  // year in the future must be repaired before that derivation runs.
+  it('keeps a week-year row from becoming the report date', () => {
+    const series = emptySeries();
+    series.exhalations = {
+      '2025-12-27': 7,
+      '2025-12-28': 8,
+      '2026-12-29': 38,
+      '2026-01-01': 9,
+    };
+    const { series: fixed } = reconcileSeriesDates(series);
+    assert.equal(coveredDatesOf(fixed).at(-1), '2026-01-01');
   });
 });
