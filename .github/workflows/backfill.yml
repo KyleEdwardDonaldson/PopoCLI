@@ -1,0 +1,166 @@
+name: Backfill CENAPRED history
+
+# Deliberate, manual-only. This walks history backwards from --to to --from,
+# and each report page embeds a ~15-day counter window, so a chunk costs roughly
+# one request per fifteen days. There is no schedule on purpose: backfilling is
+# a bulk read against a public service run by a disaster-prevention agency, and
+# it should be started by a person who is watching it.
+#
+# Run it in chunks (a year at a time is comfortable) rather than one long blast.
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'Earliest date to cover (YYYY-MM-DD)'
+        required: true
+        type: string
+      to:
+        description: 'Latest date to cover (YYYY-MM-DD)'
+        required: true
+        type: string
+      delay_ms:
+        description: 'Politeness delay between requests, in ms'
+        default: '1500'
+        type: string
+      max_requests:
+        description: 'Hard cap on network requests (safety valve)'
+        default: '40'
+        type: string
+      upgrade_partials:
+        description: 'Re-fetch counter-only days to turn them into full reports'
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Parse and report, but write and commit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Shares a group with the daily ingest so the two never push to data/ at once.
+concurrency:
+  group: ingest-feed
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: Backfill ${{ inputs.from }}..${{ inputs.to }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: ingest/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ingest
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('ingest/package-lock.json') }}
+
+      # The full Chromium build, not chromium-headless-shell, which Radware
+      # challenges. See .github/workflows/ingest.yml for the same reasoning.
+      - name: Install Chromium
+        working-directory: ingest
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensure a virtual display is available
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Run unit tests
+        working-directory: ingest
+        run: npm test
+
+      # Captures the exit status instead of failing here. A run that gets
+      # blocked part way through has usually already written good data, and
+      # that work must be committed rather than thrown away.
+      - name: Backfill
+        id: backfill
+        env:
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+          DELAY_MS: ${{ inputs.delay_ms }}
+          MAX_REQUESTS: ${{ inputs.max_requests }}
+          UPGRADE_PARTIALS: ${{ inputs.upgrade_partials }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(backfill --from "$FROM" --to "$TO" --delay-ms "$DELAY_MS" --max-requests "$MAX_REQUESTS")
+          if [ "${UPGRADE_PARTIALS:-false}" = "true" ]; then args+=(--upgrade-partials); fi
+          if [ "${DRY_RUN:-false}" = "true" ]; then args+=(--dry-run); fi
+
+          status=0
+          xvfb-run -a node ingest/index.mjs "${args[@]}" || status=$?
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+
+          if [ "$status" -eq 2 ]; then
+            echo "::warning title=Blocked part way::CENAPRED served a challenge during the backfill. Anything already fetched is still committed; re-run the same range to resume."
+          fi
+
+      # Runs even when the backfill was blocked, so partial progress is kept.
+      # Backfill is resumable, so re-running the same range picks up where it
+      # stopped rather than re-fetching.
+      - name: Commit backfilled feed
+        if: steps.backfill.outputs.changed == 'true' && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+
+          git commit \
+            -m "data: backfill ${{ inputs.from }}..${{ inputs.to }}" \
+            -m "Ingested from CENAPRED by .github/workflows/backfill.yml (${{ steps.backfill.outputs.requests }} requests, result: ${{ steps.backfill.outputs.result }})."
+
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "Push rejected (attempt ${attempt}); rebasing onto origin and retrying."
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          done
+
+          echo "Could not push the backfilled feed after 3 attempts." >&2
+          exit 1
+
+      - name: Summarise
+        if: always() && steps.backfill.outcome != 'skipped'
+        run: |
+          {
+            echo "### Backfill \`${{ inputs.from }}\` .. \`${{ inputs.to }}\`"
+            echo ""
+            echo "- requests: \`${{ steps.backfill.outputs.requests }}\`"
+            echo "- result: \`${{ steps.backfill.outputs.result }}\`"
+            echo "- changed: \`${{ steps.backfill.outputs.changed }}\`"
+            if [ "${{ steps.backfill.outputs.status }}" = "2" ]; then
+              echo ""
+              echo "Blocked part way through. Progress was committed; re-run the same range to resume."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Surface the real outcome only after the data has been safely committed.
+      - name: Propagate backfill status
+        if: steps.backfill.outputs.status != '0'
+        run: exit ${{ steps.backfill.outputs.status }}
