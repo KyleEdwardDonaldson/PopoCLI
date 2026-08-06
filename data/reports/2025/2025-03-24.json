@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "date": "2025-03-24",
+  "exhalations": 35,
+  "volcanotectonic_events": 0,
+  "tremor_minutes_total": 216,
+  "tremor_high_frequency_minutes": 181,
+  "tremor_harmonic_minutes": 35,
+  "explosions": 0,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": null,
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 24 de Marzo de 2025\n\nSe detectaron 35 exhalaciones acompañadas de vapor de agua y otros gases volcánicos. Adicionalmente, se contabilizaron 216 minutos de segmentos de tremor de baja amplitud, de los cuales, 181 minutos fueron de alta frecuencia y 35 minutos de tremor armónico (imagen 1) (video 1), (video 2).\n\nDurante la mañana se ha observado una ligera emisión continua de vapor de agua y otros gases volcánicos, con dirección hacia el este (E) (imagen 2), (video 3).\n\nEl Semáforo de Alerta Volcánica del Popocatépetl se encuentra en Amarillo Fase 2.\n\nAlgunas explosiones de tamaño menor a moderado\n\nOcurrencia de tremor de amplitud variable\n\nLluvias de ceniza leves a moderadas en poblaciones circundantes y en algunas ciudades más lejanas\n\nExpulsión de fragmentos incandescentes dentro del radio de exclusión de 12 kilómetros\n\nPodría esperarse la ocurrencia de lahares que bajen por las cañadas, debido a la acumulación de ceniza en las laderas y su interacción con las lluvias esperadas en las próximas semanas\n\nLa información aquí publicada es el resultado del monitoreo permanente al volcán Popocatépetl, que se realiza coordinadamente con la Universidad Nacional Autónoma de México. El reporte se publica diariamente a las 11 de la mañana, aquí se resume la actividad registrada durante las últimas 24 horas; esto es, de 10 de la mañana del día anterior a las 10 de la mañana del día en curso. Si ocurre un evento extraordinario, se reportará inmediatamente. No hacer caso a rumores y estar atentos a la información oficial que emita el Cenapred y la Coordinación Nacional de Protección Civil en sus cuentas oficiales: Cenapred: www.gob.mx/cenapred CNPC: www.preparados.gob.mx Twitter: @CNPC_MX Facebook: www.facebook.com/CNPCmx Recursos informativos de riesgos volcánicos ERA\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 24 de Marzo de 2025\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p24032501.jpg",
+    "https://www.cenapred.unam.mx/media/p24032502.jpg"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v24032501.mp4",
+    "https://www.cenapred.unam.mx/media/v24032502.mp4",
+    "https://www.cenapred.unam.mx/media/v24032503.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=10062&caso_reporte=0&fecha=2025-03-24",
+  "ingested_at": "2026-08-06T13:03:23Z"
+}
