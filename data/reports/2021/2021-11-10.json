@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "date": "2021-11-10",
+  "exhalations": 16,
+  "volcanotectonic_events": 0,
+  "tremor_minutes_total": 0,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 1,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": "SW",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 10 de Noviembre de 2021\n\nNoviembre 10, 11:00 h (Noviembre 10, 17:00 GMT) En las últimas 24 horas, mediante los sistemas de monitoreo del volcán Popocatépetl se identificaron 16 exhalaciones acompañadas de vapor de agua y gases volcánicos (imagen 1). Adicionalmente se registró una explosión menor el día de hoy a las 07:41 h (imagen 2). Al momento de este reporte se observa al volcán con una ligera emisión de vapor de agua y gas, que se dispersa hacia el suroeste (imagen 3). El pasado 5 de noviembre se realizó, con apoyo de la Guardia Nacional, personal experto del Instituto de Geología de la Universidad Nacional Autónoma de México (UNAM) y del Centro Nacional de Prevención de Desastres (CENAPRED), un sobrevuelo al volcán Popocatépetl para verificar sus condiciones generales. Fue posible determinar que el cráter interno tiene un diámetro aproximado de 380 a 400 metros y profundidad de 160 a 200 metros. No se pudo distinguir la presencia de un nuevo cuerpo de lava en el interior del cráter (imagen 4), (imagen 5), (imagen 6), (imagen 7), (vídeo 1). Con base en los diferentes parámetros de monitoreo y la información obtenida durante el sobrevuelo, se considera que continúen las emisiones de ceniza y algunas explosiones que no excedan en intensidad a las ya observadas. Estos escenarios están contemplados dentro del nivel Amarillo Fase 2 del Semáforo de Alerta Volcánica. Cualquier cambio en la actividad, se informará de manera oportuna. El CENAPRED exhorta a NO ACERCARSE al volcán y sobre todo al cráter, por el peligro que implica la caída de fragmentos balísticos (imagen 8) y, en caso de lluvias fuertes, alejarse de los fondos de barrancas por el peligro de flujos de lodo y escombro. El Semáforo de Alerta Volcánica del Popocatépetl se encuentra en AMARILLO FASE 2. Las recomendaciones para la población ante esta actividad son: No hacer caso a rumores y estar atentos a la información que emita la Coordinación Nacional de Protección Civil por sus canales y cuentas oficiales www.gob.mx/cenapred y @CNPC_MX Ante la probable caída de ceniza se recomienda: 1. Cubrir nariz y boca con pañuelo o cubreboca. 2. Limpiar ojos y garganta con agua pura. 3. Utilizar lentes de armazón y evitar los de contacto para reducir la irritación ocular. 4. Cerrar ventanas o cubrirlas y permanecer lo más posible dentro de la casa. Los escenarios previstos para esta fase son: 1. Que continúe la actividad explosiva de escala baja a intermedia. 2. Lluvias de ceniza leves a moderadas en poblaciones cercanas. 3. Posibilidad de flujos piroclásticos y flujos de lodo de corto alcance. RECOMENDACIONES: Se hace especial énfasis en las siguientes recomendaciones: 1. Continuar con el radio de seguridad de 12 km, por lo que la permanencia en esa área no está permitida. 2. Controlar el tránsito entre Santiago Xalitzintla y San Pedro Nexapa, vía Paso de Cortés. 3. A las autoridades de Protección Civil, mantener sus procedimientos preventivos, de acuerdo con sus planes operativos. 4. A la población se le recomienda elevar la atención a los avisos de las autoridades de su localidad y se exhorta a no acercarse al volcán, y mucho menos al cráter. El monitoreo del volcán Popocatépetl se realiza de forma continua las 24 horas. Cualquier cambio en la actividad será reportado oportunamente. El nivel del Semáforo de Alerta Volcánica dependerá de la evolución de la actividad del volcán. JCJV\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 10 de Noviembre de 2021\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p1110211.jpg",
+    "https://www.cenapred.unam.mx/media/p1110212.jpg",
+    "https://www.cenapred.unam.mx/media/p1110213.jpg",
+    "https://www.cenapred.unam.mx/media/p1105215.png",
+    "https://www.cenapred.unam.mx/media/p1105216.png",
+    "https://www.cenapred.unam.mx/media/p1105217.png",
+    "https://www.cenapred.unam.mx/media/p1105218.png",
+    "https://www.cenapred.unam.mx/media/p03041510.png"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v1105214.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=8832&caso_reporte=0&fecha=2021-11-10",
+  "ingested_at": "2026-08-06T13:34:00Z"
+}

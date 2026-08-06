@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "date": "2021-09-26",
+  "exhalations": 221,
+  "volcanotectonic_events": 2,
+  "tremor_minutes_total": 100,
+  "tremor_high_frequency_minutes": null,
+  "tremor_harmonic_minutes": null,
+  "explosions": 1,
+  "so2_emissions_tons_per_day": null,
+  "so2_measurement_date": null,
+  "alert_level": "YELLOW",
+  "alert_phase": "AMARILLO FASE 2",
+  "wind_direction": "W",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 26 de Septiembre de 2021\n\nSeptiembre 26, 11:00 h (Septiembre 26, 16:00 GMT) En las últimas 24 horas, mediante los sistemas de monitoreo del volcán Popocatépetl se identificaron 221 exhalaciones, acompañadas de vapor de agua, gases volcánicos y en ocasiones bajas cantidades de ceniza. A las 06:19 h, de hoy se registró una explosión moderada que arrojo fragmentos incandescentes sobre la ladera del volcán, (imagen 1), (imagen 2), (video 1), (video 2).También se presentaron 100 minutos de tremor de baja y mediana amplitud, y dos sismos volcanotectónicos de ayer a las 11:32 y 15:28 h, con magnitud preliminar de 2.0 y 1.7. Al momento de este reporte se observa parcialmente emisión continúa de vapor de agua y gases volcánicos con dirección al oeste (imagen 3), (imagen 4), (video 3). El CENAPRED exhorta a NO ACERCARSE al volcán y sobre todo al cráter, por el peligro que implica la caída de fragmentos balísticos (imagen 5) y, en caso de lluvias fuertes, alejarse de los fondos de barrancas por el peligro de flujos de lodo y escombro. El Semáforo de Alerta Volcánica del Popocatépetl se encuentra en AMARILLO FASE 2. Las recomendaciones para la población ante esta actividad son: No hacer caso a rumores y estar atentos a la información que emita la Coordinación Nacional de Protección Civil por sus canales y cuentas oficiales www.gob.mx/cenapred y @CNPC_MX Ante la probable caída de ceniza se recomienda: 1. Cubrir nariz y boca con pañuelo o cubreboca. 2. Limpiar ojos y garganta con agua pura. 3. Utilizar lentes de armazón y evitar los de contacto para reducir la irritación ocular. 4. Cerrar ventanas o cubrirlas y permanecer lo más posible dentro de la casa. Los escenarios previstos para esta fase son: 1. Que continúe la actividad explosiva de escala baja a intermedia. 2. Lluvias de ceniza leves a moderadas en poblaciones cercanas. 3. Posibilidad de flujos piroclásticos y flujos de lodo de corto alcance. RECOMENDACIONES: Se hace especial énfasis en las siguientes recomendaciones: 1. Continuar con el radio de seguridad de 12 km, por lo que la permanencia en esa área no está permitida. 2. Controlar el tránsito entre Santiago Xalitzintla y San Pedro Nexapa, vía Paso de Cortés. 3. A las autoridades de Protección Civil, mantener sus procedimientos preventivos, de acuerdo con sus planes operativos. 4. A la población se le recomienda elevar la atención a los avisos de las autoridades de su localidad y se exhorta a no acercarse al volcán, y mucho menos al cráter. El monitoreo del volcán Popocatépetl se realiza de forma continua las 24 horas. Cualquier cambio en la actividad será reportado oportunamente. El nivel del Semáforo de Alerta Volcánica dependerá de la evolución de la actividad del volcán. ARM\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 26 de Septiembre de 2021\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "ashfall_reports": [],
+  "image_urls": [
+    "https://www.cenapred.unam.mx/media/p0926211.jpeg",
+    "https://www.cenapred.unam.mx/media/p0926212.jpeg",
+    "https://www.cenapred.unam.mx/media/p0926213.jpeg",
+    "https://www.cenapred.unam.mx/media/p0926214.jpeg",
+    "https://www.cenapred.unam.mx/media/p03041510.png"
+  ],
+  "video_urls": [
+    "https://www.cenapred.unam.mx/media/v0926211.mp4",
+    "https://www.cenapred.unam.mx/media/v0926212.mp4",
+    "https://www.cenapred.unam.mx/media/v0926213.mp4"
+  ],
+  "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesReporteVolcan&id_registro=8787&caso_reporte=0&fecha=2021-09-26",
+  "ingested_at": "2026-08-06T13:34:16Z"
+}
