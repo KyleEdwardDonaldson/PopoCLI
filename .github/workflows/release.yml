@@ -131,3 +131,37 @@ jobs:
           body_path: release-notes.md
           draft: false
           prerelease: false
+
+      # Plan task 4.3: mirror the published assets into greyarea.systems so the
+      # storefront serves them, rather than someone remembering to click sync.
+      #
+      # Addressed by repo+tag because CI knows what it just published but not
+      # greyarea's internal release id. Skips with a notice when no token is
+      # configured, so a release is never blocked on a missing credential —
+      # mint one in admin with the releases:sync scope and add it as
+      # GREYAREA_SYNC_TOKEN.
+      #
+      # continue-on-error: the GitHub release is already published by the step
+      # above and is the source of truth. A mirror that fails is a re-runnable
+      # follow-up, not a reason to red a release that actually shipped.
+      - name: Mirror assets into greyarea.systems
+        continue-on-error: true
+        env:
+          TOKEN: ${{ secrets.GREYAREA_SYNC_TOKEN }}
+          BASE: ${{ vars.GREYAREA_BASE_URL || 'https://greyarea.systems' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOKEN:-}" ]; then
+            echo "::notice title=Mirror skipped::No GREYAREA_SYNC_TOKEN secret;           the GitHub release is published but not mirrored."
+            exit 0
+          fi
+          tag="${GITHUB_REF_NAME}"
+          code=$(curl -sS -o resp.json -w '%{http_code}'             -X POST "$BASE/api/admin/releases/github-sync-by-tag"             -H "Authorization: Bearer $TOKEN"             -H 'Content-Type: application/json'             -d "{\"repo\":\"$GITHUB_REPOSITORY\",\"tag\":\"$tag\"}")
+          echo "greyarea.systems answered $code"; cat resp.json
+          # 404 = no release row for this tag yet; that is a content step, not a
+          # build failure, so say so plainly instead of failing opaquely.
+          if [ "$code" = "404" ]; then
+            echo "::warning title=No release row::Create the release in greyarea.systems for $GITHUB_REPOSITORY@$tag, then re-run this job."
+            exit 0
+          fi
+          [ "$code" -lt 300 ]
