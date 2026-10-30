@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "date": "2026-10-29",
-  "exhalations": 29,
-  "volcanotectonic_events": 0,
-  "tremor_minutes_total": 53,
+  "date": "2026-10-30",
+  "exhalations": 35,
+  "volcanotectonic_events": 1,
+  "tremor_minutes_total": 0,
   "tremor_high_frequency_minutes": null,
   "tremor_harmonic_minutes": null,
   "explosions": 0,
@@ -11,18 +11,20 @@
   "so2_measurement_date": null,
   "alert_level": "YELLOW",
   "alert_phase": "AMARILLO FASE 2",
-  "wind_direction": "NE",
-  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 29 de Octubre de 2026\n\nSe detectaron 29 exhalaciones de baja intensidad, acompañadas principalmente de vapor de agua, otros gases volcánicos y ocasionalmente pequeñas cantidades de ceniza (imagen 1), (imagen 2), (vídeo 1). Adicionalmente, se registraron 53 minutos de tremor de baja amplitud y alta frecuencia.\n\nDurante esta mañana y al momento de este reporte, se ha observado la emisión continua de vapor de agua y otros gases volcánicos con dirección hacia el este-noreste (imagen 3), (vídeo 2).\n\nEl Semáforo de Alerta Volcánica del Popocatépetl se encuentra en Amarillo Fase 2.\n\nAlgunas explosiones de tamaño menor a moderado\n\nOcurrencia de tremor de amplitud variable\n\nLluvias de ceniza leves a moderadas en poblaciones circundantes y en algunas ciudades más lejanas\n\nExpulsión de fragmentos incandescentes dentro del radio de exclusión de 12 kilómetros\n\nPodría esperarse la ocurrencia de lahares que bajen por las cañadas, debido a la acumulación de ceniza en las laderas y su interacción con las lluvias esperadas en las próximas semanas\n\nLa información aquí publicada es el resultado del monitoreo permanente al volcán Popocatépetl, que se realiza coordinadamente con la Universidad Nacional Autónoma de México. El reporte se publica diariamente a las 11 de la mañana, aquí se resume la actividad registrada durante las últimas 24 horas; esto es, de 10 de la mañana del día anterior a las 10 de la mañana del día en curso. Si ocurre un evento extraordinario, se reportará inmediatamente. No hacer caso a rumores y estar atentos a la información oficial que emita el Cenapred y la Coordinación Nacional de Protección Civil en sus cuentas oficiales:\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 29 de Octubre de 2026\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
+  "wind_direction": "S",
+  "summary_spanish": "Reporte del monitoreo del Cenapred al volcán Popocatépetl 30 de Octubre de 2026\n\nSe detectaron 35 exhalaciones de baja intensidad, acompañadas de vapor de agua, otros gases volcánicos y ocasionalmente ligeras cantidades de ceniza (imagen 1), (imagen 2), (imagen 3), (imagen 4), (imagen 5).\n\nEl día de ayer se registró un sismo volcanotectónico a las 22:27 h (tiempo local) con magnitud calculada de 1.4 (imagen 6).\n\nDurante esta mañana y al momento de este reporte, se observa una emisión continua de vapor de agua y otros gases volcánicos con dirección al sur (video 1).\n\nEl Semáforo de Alerta Volcánica del Popocatépetl se encuentra en Amarillo Fase 2.\n\nAlgunas explosiones de tamaño menor a moderado\n\nOcurrencia de tremor de amplitud variable\n\nLluvias de ceniza leves a moderadas en poblaciones circundantes y en algunas ciudades más lejanas\n\nExpulsión de fragmentos incandescentes dentro del radio de exclusión de 12 kilómetros\n\nPodría esperarse la ocurrencia de lahares que bajen por las cañadas, debido a la acumulación de ceniza en las laderas y su interacción con las lluvias esperadas en las próximas semanas\n\nLa información aquí publicada es el resultado del monitoreo permanente al volcán Popocatépetl, que se realiza coordinadamente con la Universidad Nacional Autónoma de México. El reporte se publica diariamente a las 11 de la mañana, aquí se resume la actividad registrada durante las últimas 24 horas; esto es, de 10 de la mañana del día anterior a las 10 de la mañana del día en curso. Si ocurre un evento extraordinario, se reportará inmediatamente. No hacer caso a rumores y estar atentos a la información oficial que emita el Cenapred y la Coordinación Nacional de Protección Civil en sus cuentas oficiales:\n\nSemáforo de alerta volcánica\n\nEmisión de bióxido de azufre\n\nImágenes del volcán Popocatépetl en tiempo real\n\nMonitoreo volcán Fuego de Colima\n\nMonitoreo volcán Citlaltépetl\n\nImágenes del volcán Popocatépetl - 30 de Octubre de 2026\n\nVideos del volcán Popocatépetl\n\nMapa de Peligros del volcán Popocatépetl",
   "ashfall_reports": [],
   "image_urls": [
-    "https://www.cenapred.unam.mx/media/p29102601.jpeg",
-    "https://www.cenapred.unam.mx/media/p29102602.jpeg",
-    "https://www.cenapred.unam.mx/media/p29102603.jpeg"
+    "https://www.cenapred.unam.mx/media/p30102601.jpg",
+    "https://www.cenapred.unam.mx/media/p30102602.jpg",
+    "https://www.cenapred.unam.mx/media/p30102603.jpg",
+    "https://www.cenapred.unam.mx/media/p30102604.jpg",
+    "https://www.cenapred.unam.mx/media/p30102605.jpg",
+    "https://www.cenapred.unam.mx/media/p30102606.jpg"
   ],
   "video_urls": [
-    "https://www.cenapred.unam.mx/media/v29102601.mp4",
-    "https://www.cenapred.unam.mx/media/v29102602.mp4"
+    "https://www.cenapred.unam.mx/media/v30102601.mp4"
   ],
   "source_url": "https://www.cenapred.unam.mx/reportesVolcanesMX/Procesos?tipoProceso=detallesUltimoReporteVolcan",
-  "ingested_at": "2026-10-29T22:46:46Z"
+  "ingested_at": "2026-10-30T22:23:49Z"
 }
